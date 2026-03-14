@@ -17,8 +17,8 @@ configparser
 On your machine's command line, run 'pip install <module>'.
 You should be able to run Solus without these modules imported, but functionality will be limited.
 Proceed? (y/N)""")
-    dangerousProceed = input("> ")
-    if dangerousProceed == "y".casefold():
+    dangerousProceed = input("> ").casefold()
+    if dangerousProceed == "y":
         print("Skipping module imports.")
     else:
         exit()
@@ -38,9 +38,9 @@ try:
         "password": config['SOLUS_INFO']['password'],
         "solusname": config['SOLUS_INFO']['solusname']}
     version = config['SOLUS_INFO']['version']
-except KeyError:
+except Exception:
     print("Error loading configuration file. Would you like to create it? (Y/n)")
-    choice = input("> ")
+    choice = input("> ").casefold()
     if choice == "n":
         print("Aborted.")
         exit()
@@ -208,10 +208,8 @@ while True:
                     write("a")
                 except Exception:
                     write("w")
-            except FileNotFoundError:
-                print(f"File '{command.removeprefix('nano ')}' cannot be accessed. You may not have permissions to modify it.")
-            except PermissionError:
-                print(f"File '{command.removeprefix('nano ')}' cannot be accessed due to unqualified permission.")
+            except Exception as e:
+                print(f"Error: {e}")
         else:
             print("'nano' takes at least one argument, <file>.")
     elif command.startswith("info"): # info
@@ -256,14 +254,8 @@ while True:
                 cwd = os.getcwd()
                 print(f"Changed directory to '{cwd}'")
                 del new_dir
-            except FileNotFoundError:
-                print(f"Directory '{command.removeprefix('cwd ')}' doesn't exist.")
-            except NotADirectoryError:
-                print(f"'{command.removeprefix('cwd')}' is a file, not a directory.")
-            except PermissionError:
-                print(f"Solus doesn't have permission to change to this directory.")
-            except OSError:
-                print(f"Your operating system ran into an issue trying to perform this task.")
+            except Exception as e:
+                print(f"Error: {e}")
         else:
             print("'cwd' takes at least one argument, <dir>.")
     elif command.startswith("copyright"): # copyright
@@ -276,9 +268,9 @@ while True:
             try:
                 os.remove(command.removeprefix("boom "))
                 print(f"Successfully deleted '{command.removeprefix('boom ')}'.")
-            except Exception:
+            except OSError:
                 print(f"'{command.removeprefix('boom ')}' is a directory. Would you like to remove it? (y/N)")
-                choice = input("> ")
+                choice = input("> ").casefold()
                 if choice == "y":
                     try:
                         shutil.rmtree(command.removeprefix('boom '))
@@ -288,7 +280,7 @@ while True:
                 else:
                     print("Aborted.")
         else:
-            print("'rm' takes at least one argument, <file>")
+            print("'boom' takes at least one argument, <file>")
     elif command.startswith("kin"): # kin
         if command.startswith("kin "):
             try:
@@ -303,10 +295,6 @@ while True:
             try:
                 Path(f"{command.removeprefix('touch ')}").touch()
                 print(f"Sucessfully created '{command.removeprefix('touch ')}' at '{cwd}'")
-            except FileExistsError:
-                print(f"'{command.removeprefix('touch ')}' already exists in '{cwd}'.")
-            except PermissionError:
-                print("Solus doesn't have the necessary permissions to perform this.")
             except Exception as e:
                 print(f"Error: {e}")
         else:
