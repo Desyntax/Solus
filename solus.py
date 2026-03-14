@@ -70,7 +70,7 @@ cwd = __file__.removesuffix("solus.py")
 inSolusDirectory = "$"
 helpList = f"""Solus command line interface, build {version}. Open-sourced project.
 Command format:
-command <necessary_arguments> [;optional_arguments] -- Description [modules_necessary]
+command <necessary_args> [;optional_args] -- Description [modules_required]
 Interpreter format:
 (USERNAME)@(Solusname)(directory)>
 
@@ -84,7 +84,7 @@ scan <file>             -- Prints text from <file>
 nano <file> [;a]        -- Writes text in <file>
 kin <dir>               -- Creates a directory called <dir> [os]
 touch <file>            -- Creates a file called <file> [pathlib]
-boom <file              -- Deletes <file> from current directory [shutil, os]
+boom <file>             -- Deletes <file> from current directory [shutil, os]
 rep <file> <str/dir>    -- Renames <file> to <str> or moves <file> to <dir> [os]
 copy <file> <dir>       -- Copies <file> to <dir> [pathlib]
 username <str>          -- Sets a new username [configparser]
@@ -150,7 +150,7 @@ if dangerousProceed != "y":
         print("Solus couldn't locate itself to record its disk usage. Proceeding anyway...")
     print(f"Solus is running on a {sys.platform} system.")
     if sys.platform == "win32":
-        dirSep = "\"
+        dirSep = "\""
     else:
         dirSep = "/"
     cwd = __file__.removesuffix(f"{dirSep}solus.py")
@@ -324,11 +324,10 @@ while True:
         exit()
     else:
         print(f"'{command}' not a recognised command. Use 'help' to view a list of commands.")
-    if cwd == __file__.removesuffix("solus.py"):
+    if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
         inSolusDirectory = "$"
     else:
         inSolusDirectory = "~"
 
 # like and subscribe for more epic code
-
 
