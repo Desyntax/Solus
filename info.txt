@@ -1,0 +1,3 @@
+Solus CLI, build indev_3. Created by desyntax.
+Thank you for using my CLI.
+Type 'help' to view a list of commands.
