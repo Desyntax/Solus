@@ -1,5 +1,5 @@
 # SOLUS by DESYNTAX - VERSION indev_3 - CREATED 24/02/26 - LAST UPDATED 11/03/26
-print("Starting CLI...")
+print("Starting Solus...")
 dangerousProceed = ""
 
 # imports
@@ -74,8 +74,9 @@ command <necessary_arguments> [;optional_arguments] -- Description [modules_nece
 Interpreter format:
 (USERNAME)@(Solusname)(directory)>
 
-help [command]          -- Displays this help message
+help                    -- Displays this help message
 logout                  -- Logs out of Solus
+exit                    -- Logs out and kills the program
 output <str>            -- Prints <str> to the screen
 ls                      -- Prints files and dirs in CWD to the screen [os]
 cwd <dir>               -- Changes current working directory to <dir> [os]
@@ -148,6 +149,11 @@ if dangerousProceed != "y":
     except FileNotFoundError:
         print("Solus couldn't locate itself to record its disk usage. Proceeding anyway...")
     print(f"Solus is running on a {sys.platform} system.")
+    if sys.platform == "win32":
+        dirSep = "\"
+    else:
+        dirSep = "/"
+    cwd = __file__.removesuffix(f"{dirSep}solus.py")
     bootEnd = time.time()
     bootTime = bootEnd - bootStart
     print(f"Booted in {round((bootTime * 1000), 4)} milliseconds.")
@@ -182,18 +188,8 @@ while True:
                     file.close()
                 except FileNotFoundError:
                     print(f"File '{command.removeprefix('scan ')}' not found. Check your spelling, its existence, or your permissions.")
-            except IsADirectoryError:
-                print(f"'{command.removeprefix('scan ')}' is a directory, not a file.")
-            except FileNotFoundError:
-                print(f"'{command.removeprefix('scan ')}' does not exist. Use 'touch' to create it.")
-            except PermissionError:
-                print(f"Solus doesn't have permissions to read '{command.removeprefix('scan ')}'. Are you root?")
-            except OSError:
-                print(f"Solus couldn't open '{command.removeprefix('scan ')}'.")
-            except UnicodeDecodeError:
-                print(f"'{command.removeprefix('scan ')}' can't be read because of a Unicode decode error.")
-            except MemoryError:
-                print("There isn't enough memory on this system to read this file.")
+            except Exception as e:
+                print(f"Error: {e}")
         else:
             print("'scan' takes one argument, <file>.")
     elif command.startswith("username"): # username
@@ -323,6 +319,9 @@ while True:
             del copy
         else:
             print("'copy' takes at least two arguments, <file> and <dir>.")
+    elif command.startswith("exit"):
+        print("Ending process...")
+        exit()
     else:
         print(f"'{command}' not a recognised command. Use 'help' to view a list of commands.")
     if cwd == __file__.removesuffix("solus.py"):
