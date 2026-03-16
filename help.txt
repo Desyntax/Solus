@@ -1,0 +1,26 @@
+Solus command line interface, build indev_4. Open-sourced project.
+Command format:
+command {green}<necessary_args> {blue}[;optional_args]{reset} -- Description {yellow}[modules_required]{reset}
+Interpreter format:
+{underl}(USERNAME)@(Solusname)(directory){reset}>
+
+help {blue}[command]{reset}          -- Displays this help message
+logout                  -- Logs out of Solus
+exit                    -- Logs out of Solus and kills the CLI
+output {green}<str>{reset}            -- Prints {green}<str>{reset} to the screen
+ls                      -- Prints files and dirs in CWD to the screen {yellow}[os]{reset}
+cwd {green}<dir>{reset}               -- Changes current working directory to {green}<dir> {yellow}[os]{reset}
+scan {green}<file>{reset}             -- Prints text from {green}<file>{reset}
+nano {green}<file> {blue}[;a]{reset}        -- Writes text in {green}<file>{reset}
+kin {green}<dir>{reset}               -- Creates a directory called {green}<dir> {yellow}[os]{reset}
+touch {green}<file>{reset}            -- Creates a file called {green}<file> {yellow}[pathlib]{reset}
+boom {green}<file>{reset}              -- Deletes {green}<file>{reset} from current directory {yellow}[shutil, os]{reset}
+rep {green}<file> <str/dir>{reset}    -- Renames {green}<file>{reset} to {green}<str>{reset}, or moves {green}<file>{reset} to {green}<dir> {yellow}[os]{reset}
+copy {green}<file> <dir>{reset}       -- Copies {green}<file>{reset} to {green}<dir> {yellow}[pathlib]{reset}
+username {green}<str>{reset}          -- Sets a new username {yellow}[configparser]{reset}
+password {green}<str>{reset}          -- Sets a new password {yellow}[configparser]{reset}
+solusname {green}<str>{reset}         -- Sets a new name for Solus {yellow}[configparser]{reset}
+info                    -- Prints information about Solus
+copyright               -- Prints copyright information about Solus
+
+Use help {blue}[command]{reset} to view more details about a command.
