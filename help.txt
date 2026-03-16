@@ -14,8 +14,8 @@ scan {green}<file>{reset}             -- Prints text from {green}<file>{reset}
 nano {green}<file> {blue}[;a]{reset}        -- Writes text in {green}<file>{reset}
 kin {green}<dir>{reset}               -- Creates a directory called {green}<dir> {yellow}[os]{reset}
 touch {green}<file>{reset}            -- Creates a file called {green}<file> {yellow}[pathlib]{reset}
-boom {green}<file>{reset}              -- Deletes {green}<file>{reset} from current directory {yellow}[shutil, os]{reset}
-rep {green}<file> <str/dir>{reset}    -- Renames {green}<file>{reset} to {green}<str>{reset}, or moves {green}<file>{reset} to {green}<dir> {yellow}[os]{reset}
+boom {green}<file>{reset}             -- Deletes {green}<file>{reset} from current directory {yellow}[shutil, os]{reset}
+rep {green}<file> <str/dir>{reset}    -- Renames {green}<file>{reset} to {green}<str>{reset} or moves {green}<file>{reset} to {green}<dir> {yellow}[os]{reset}
 copy {green}<file> <dir>{reset}       -- Copies {green}<file>{reset} to {green}<dir> {yellow}[pathlib]{reset}
 username {green}<str>{reset}          -- Sets a new username {yellow}[configparser]{reset}
 password {green}<str>{reset}          -- Sets a new password {yellow}[configparser]{reset}
