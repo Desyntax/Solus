@@ -1,12 +1,12 @@
 # SOLUS by DESYNTAX - VERSION indev_4 - CREATED 24/02/26 - LAST UPDATED 16/03/26
 print("Starting CLI...")
 dangerousProceed = ""
-style = {
+sty = {
     "reset": "\x1b[0m",
     "red": "\x1b[91m",
-    "yellow": "\x1b[33m",
+    "gold": "\x1b[93m",
     "green": "\x1b[92m",
-    "blue": "\x1b[36m",
+    "blue": "\x1b[96m",
     "pink": "\x1b[95m",
     "underl": "\x1b[4m",
     "bold": "\x1b[1m",
@@ -18,15 +18,21 @@ try:
     from pathlib import Path
 except ModuleNotFoundError:
     print(f"""Solus has run into an error and cannot import certain necessary modules. Please ensure you have the following:
-os
-sys
-time
-shutil
-pathlib
-configparser
+
+os              -- in commands
+sys             -- optional
+time            -- optional
+shutil          -- in commands
+pathlib         -- in commands
+configparser    -- optional
+
+where:
+optional        -- used to assess OS or fetch config
+in commands     -- necessary to perform some commands
+
 On your machine's command line, run 'pip install <module>'.
-You should be able to run Solus without these modules imported, but functionality will be limited.
-Proceed? {style['underl']}(y/N){style['reset']}""")
+You might be able to run Solus without these modules imported, but functionality will be severely limited.
+Proceed? {sty['underl']}(y/N){sty['reset']}""")
     dangerousProceed = input("> ")
     if dangerousProceed == "y".casefold():
         print("Skipping module imports.")
@@ -37,7 +43,7 @@ except MemoryError:
     input("> ")
     exit()
 bootStart = time.time()
-print(f"{style['green']}Loaded necessary modules.{style['reset']}")
+print(f"{sty['green']}Loaded necessary modules.{sty['reset']}")
 
 # config
 try:
@@ -71,14 +77,14 @@ except KeyError:
     version = config['SOLUS_INFO']['version']
     print("Created configuration file.")
     print("Username: 'guest'; password: 'password'.")
-print(f"{style['green']}Loaded configuration file.{style['reset']}")
+print(f"{sty['green']}Loaded configuration file.{sty['reset']}")
 
 # variables
 welcomeMessage = f"Solus CLI {version}, created by Desyntax on 24/02/2026."
 command = ""
 inSolusDirectory = "$"
 copyr = f"Solus {version}, created by Desyntax. All content, including source code, are public domain."
-print(f"{style['green']}Loaded variables.{style['reset']}")
+print(f"{sty['green']}Loaded variables.{sty['reset']}")
 
 # definitions
 def login():
@@ -86,13 +92,13 @@ def login():
     print("Please sign in below.")
     while True:
         tryUsername = input("USERNAME> ")
-        tryPassword = input(f"PASSWORD> {style['hide']}")
+        tryPassword = input(f"PASSWORD> {sty['hide']}")
         if tryUsername == solus_info["username"] and tryPassword == solus_info["password"]:
-            print(f"{style['reset']}{style['green']}Logged in. Welcome, {solus_info['username']}{style['reset']}")
+            print(f"{sty['reset']}{sty['green']}Logged in. Welcome, {solus_info['username']}{sty['reset']}")
             del tryUsername, tryPassword
             break
         else:
-            print(f"{style['reset']}{style['red']}Incorrect username or password.{style['reset']}")
+            print(f"{sty['reset']}{sty['red']}Incorrect username or password.{sty['reset']}")
 def write(mode):
     file = open(f"{command.removeprefix('nano ')}", mode)
     if mode == "w":
@@ -118,28 +124,59 @@ def modifyInfo(part):
             config.write(f)
         print(f"Updated {part} to {newName}.")
     else:
-        print(f"{style['red']}'{part}' takes one argument, <str>.{style['reset']}")
-print(f"{style['green']}Loaded definitions.{style['reset']}")
+        print(f"{sty['red']}'{part}' takes one argument, <str>.{sty['reset']}")
+def sty_rainbow(text):
+    global sty
+    stymap = [sty["red"], sty["gold"], sty["green"], sty["blue"], sty["pink"]]
+    result = ""
+    for i, t in enumerate(text):
+        color = stymap[i % len(stymap)]
+        result += f"{color}{t}"
+    result += sty["reset"]
+    return result
+def ls(main, name, size):
+    global os, cwd
+    allinpath = {}
+    print(f"{sty['blue']}{name:<20} {sty['green']}{size:>10}{sty['reset']}")
+    print("-" * 32)
+    for node in main:
+        allinpath[node] = os.path.getsize(node)
+        if os.path.isdir(allinpath[node]) == True:
+            for path, dirs, files in os.walk(Folderpath):
+                for f in files:
+                    fp = os.path.join(path, f)
+                    size += os.path.getsize(fp)
+    for row in main:
+        filesize = allinpath[row]
+        fsm = " B" # file size measurement (bytes, kilobytes, etc)
+        if filesize >= 1024:
+            filesize /= 1024
+            fsm = "KB"
+        elif filesize >= 1048576:
+            fsm = "MB"
+        elif filesize >= 1073741824:
+            fsm = "GB"
+        filesize = round(filesize, 2)
+        print(f"{row:<20} {filesize:>10,}{fsm}")
+
+print(f"{sty['green']}Loaded definitions.{sty['reset']}")
 
 # initialise
 if dangerousProceed != "y":
-    print(f"Found {style['blue']}{os.cpu_count()}{style['reset']} CPU threads.")
-    try:
-        fileStats = str(os.stat(__file__)).split(", ")
-        fileSize = int(str(fileStats[6]).removeprefix("st_size="))
-        print(f"Solus occupies {style['blue']}{fileSize:,d}{style['reset']} bytes of disk space.")
-        del fileStats, fileSize
-    except FileNotFoundError:
-        print("Solus couldn't locate itself to record its disk usage. Proceeding anyway...")
-    print(f"Solus is running on a {style['blue']}{sys.platform}{style['reset']} system.")
+    print(f"Solus is running on a {sty['blue']}{sys.platform}{sty['reset']} system.")
     if sys.platform == "win32":
         dirSep = "\""
     else:
         dirSep = "/"
     cwd = __file__.removesuffix(f"{dirSep}solus.py")
+    print(f"Found {sty['blue']}{os.cpu_count()}{sty['reset']} CPU threads.")
+    try:
+        print(f"Solus occupies {sty['blue']}{os.path.getsize(f'{cwd}{dirSep}solus.py'):,d}{sty['reset']} bytes of disk space.")
+    except FileNotFoundError:
+        print("Solus couldn't locate itself to record its disk usage. Proceeding anyway...")
     bootEnd = time.time()
     bootTime = bootEnd - bootStart
-    print(f"Booted in {style['blue']}{round((bootTime * 1000), 4)}{style['reset']} milliseconds.")
+    print(f"Booted in {sty['blue']}{round((bootTime * 1000), 4)}{sty['reset']} milliseconds.")
     del bootStart, bootEnd, bootTime
 else:
     print("Skipped checking OS due to missing modules.")
@@ -149,27 +186,32 @@ print(welcomeMessage, end="\n\n")
 login()
 
 while True:
-    command = input(f"{style['underl']}{solus_info['username'].upper()}@{solus_info['solusname']}{inSolusDirectory}{style['reset']}> ")
+    command = input(f"{sty['reset']}{sty['red']}{solus_info['username'].upper()}{sty['pink']}@{sty['blue']}{solus_info['solusname']}{sty['pink']}{inSolusDirectory}{sty['reset']}> ")
     if command == "help": # help
         try:
             file = open("help.txt", "r")
             helpmsg = file.read()
-            helpmsg = helpmsg.format_map(style)
+            helpmsg = helpmsg.format_map(sty)
             print(helpmsg)
             file.close()
             del helpmsg
         except FileNotFoundError:
-            print(f"{style['red']}'help.txt' was not found. Are you in Solus' directory?{style['reset']}")
-        except OSError:
-            print(f"{style['red']}'help.txt' could not be read.{style['reset']}")
+            print(f"{sty['red']}'help.txt' was not found. Are you in Solus' directory?{sty['reset']}")
+        except Exception as e:
+            print(f"{sty['red']}Error: {e}{sty['reset']}")
     elif command == "logout": # logout
         print("You have successfully logged out.")
         login()
     elif command.startswith("output"): # output
         if command.startswith("output "):
-            print(command.removeprefix("output "))
+            try:
+                out = command.split(maxsplit=2).casefold()
+                if out[2] == "[;f]":
+                    print(f"{command.removeprefix('output ')}")
+            except Exception:
+                print(command.removeprefix('output '))
         else:
-            print(f"{style['red']}'output' takes one argument, <str>.{style['reset']}")
+            print(f"{sty['red']}'output' takes one argument, <str>.{sty['reset']}")
     elif command.startswith("scan"): # scan
         if command.startswith("scan "):
             try:
@@ -180,11 +222,11 @@ while True:
                     print(file.read())
                     file.close()
                 except FileNotFoundError:
-                    print(f"{style['red']}File '{command.removeprefix('scan ')}' not found. Check your spelling, its existence, or your permissions.{style['reset']}")
+                    print(f"{sty['red']}File '{command.removeprefix('scan ')}' not found. Check your spelling, its existence, or your permissions.{sty['reset']}")
             except Exception as e:
-                print(f"{style['red']}Error: {e}{style['reset']}")
+                print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
-            print(f"{style['red']}'scan' takes one argument, <file>.{style['reset']}")
+            print(f"{sty['red']}'scan' takes one argument, <file>.{sty['reset']}")
     elif command.startswith("username"): # username
         modifyInfo("username")
     elif command.startswith("password"): # password
@@ -202,29 +244,21 @@ while True:
                 except Exception:
                     write("w")
             except Exception as e:
-                print(f"{style['red']}Error: {e}{style['reset']}")
+                print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
-            print(f"{style['red']}'nano' takes at least one argument, <file>.{style['reset']}")
+            print(f"{sty['red']}'nano' takes at least one argument, <file>.{sty['reset']}")
     elif command.startswith("info"): # info
-        if command.startswith("info "):
-            if command == "info ":
-                try:
-                    file = open("info.txt", "r")
-                    print(file.read(), end="\n")
-                    file.close()
-                except FileNotFoundError:
-                    print(f"{style['red']}'info.txt' was not found. Are you in Solus' directory?{style['reset']}")
-                except Exception:
-                    print(f"{style['red']}'info.txt' could not be read.{style['reset']}")
-            else:
-                print(f"{style['red']}'info' takes zero arguments.{style['reset']}")
-        else:
-            try:
-                file = open("info.txt", "r")
-                print(file.read(), end="")
-                file.close()
-            except FileNotFoundError:
-                    print("{style['red']}'info.txt' was not found. Are you in Solus' directory?{style['reset']}")
+        try:
+            file = open("info.txt", "r")
+            infomsg = file.read()
+            infomsg = infomsg
+            print(infomsg.format_map({"desyntax": sty_rainbow("Desyntax"), **sty}))
+            file.close()
+            del infomsg
+        except FileNotFoundError:
+            print(f"{sty['red']}'info.txt' was not found. Are you in Solus' directory?{sty['reset']}")
+        except Exception as e:
+            print(f"{sty['red']}Error: {e}{sty['reset']}")
     elif command.startswith("rep"): # rep
         if command.startswith("rep "):
             try:
@@ -233,15 +267,15 @@ while True:
                 print(f"Successfully modified '{rep[1]}' to '{rep[2]}'.")
                 del rep
             except Exception as e:
-                print(f"{style['red']}Error: {e}{style['reset']}")
+                print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
-            print("{style['red']}'rep' takes at least two arguments, <file> and <str/dir>.{style['reset']}")
+            print("{sty['red']}'rep' takes at least two arguments, <file> and <str/dir>.{sty['reset']}")
     elif command.startswith("ls"): # ls
         if command.startswith("ls "):
-            print(f"{style['red']}'ls' takes zero arguments.{style['reset']}")
+            print(f"{sty['red']}'ls' takes zero arguments.{sty['reset']}")
         else:
             print(f"All in '{cwd}':")
-            print(os.listdir(cwd))
+            ls(os.listdir(cwd), "Name", "Size")
     elif command.startswith("cwd"):  # cwd
         if command.startswith("cwd "):
             try:
@@ -250,16 +284,10 @@ while True:
                 cwd = os.getcwd()
                 print(f"Changed directory to '{cwd}'")
                 del new_dir
-            except FileNotFoundError:
-                print(f"Directory '{command.removeprefix('cwd ')}' doesn't exist.")
-            except NotADirectoryError:
-                print(f"'{command.removeprefix('cwd')}' is a file, not a directory.")
-            except PermissionError:
-                print(f"Solus doesn't have permission to change to this directory.")
-            except OSError:
-                print(f"Your operating system ran into an issue trying to perform this task.")
+            except Exception as e:
+                print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
-            print(f"{style['red']}'cwd' takes at least one argument, <dir>.{style['reset']}")
+            print(f"{sty['red']}'cwd' takes at least one argument, <dir>.{sty['reset']}")
     elif command.startswith("copyright"): # copyright
         print(copyr)
     elif command.startswith("boom"): # boom
@@ -267,41 +295,43 @@ while True:
             try:
                 os.remove(command.removeprefix("boom "))
                 print(f"Successfully deleted '{command.removeprefix('boom ')}'.")
-            except Exception:
-                print(f"{style['red']}'{command.removeprefix('boom ')}' is a directory.{style['reset']} Would you like to remove it? (y/N)")
+            except IsADirectoryError:
+                print(f"{sty['red']}'{command.removeprefix('boom ')}' is a directory.{sty['reset']} Would you like to remove it? (y/N)")
                 choice = input("> ").casefold()
                 if choice == "y":
                     try:
                         shutil.rmtree(command.removeprefix('boom '))
                         print(f"Successfully removed '{command.removeprefix('boom ')}'")
                     except Exception as e:
-                        print(f"{style['red']}Error: {e}{style['reset']}")
+                        print(f"{sty['red']}Error: {e}{sty['reset']}")
                 else:
                     print("Aborted.")
+            except Exception as e:
+                print(f"{sty['red']}Error: {e}{sty['red']}")
         else:
-            print(f"{style['red']}'boom' takes at least one argument, <file>.{style['reset']}")
+            print(f"{sty['red']}'boom' takes at least one argument, <file>.{sty['reset']}")
     elif command.startswith("kin"): # kin
         if command.startswith("kin "):
             try:
                 os.mkdir(command.removeprefix("kin "))
                 print(f"Created directory '{command.removeprefix('kin ')}' in '{cwd}'.")
             except Exception as e:
-                print(f"{style['red']}Error: {e}{style['reset']}")
+                print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
-            print(f"{style['red']}'kin' takes at least one argument, <dir>.{style['reset']}")
+            print(f"{sty['red']}'kin' takes at least one argument, <dir>.{sty['reset']}")
     elif command.startswith("touch"): # touch
         if command.startswith("touch "):
             try:
                 Path(f"{command.removeprefix('touch ')}").touch()
                 print(f"Sucessfully created '{command.removeprefix('touch ')}' at '{cwd}'")
             except FileExistsError:
-                print(f"{style['red']}'{command.removeprefix('touch ')}' already exists in '{cwd}'.{style['reset']}")
+                print(f"{sty['red']}'{command.removeprefix('touch ')}' already exists in '{cwd}'.{sty['reset']}")
             except PermissionError:
-                print(f"{style['red']}Solus doesn't have the necessary permissions to perform this.{style['reset']}")
+                print(f"{sty['red']}Solus doesn't have the necessary permissions to perform this.{sty['reset']}")
             except Exception as e:
-                print(f"{style['red']}Error: {e}{style['reset']}")
+                print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
-            print(f"{style['red']}'touch' takes at least one argument, <file>.{style['reset']}")
+            print(f"{sty['red']}'touch' takes at least one argument, <file>.{sty['reset']}")
     elif command.startswith("copy"): # copy
         if command.startswith("copy "):
             try:
@@ -310,18 +340,17 @@ while True:
                 print(f"Successfully copied '{copy[1]}' to '{copy[2]}'.")
                 del copy
             except Exception as e:
-                print(f"{style['red']}Error: {e}{style['reset']}")
+                print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
-            print(f"{style['red']}'copy' takes at least two arguments, <file> and <dir>.{style['reset']}")
+            print(f"{sty['red']}'copy' takes at least two arguments, <file> and <dir>.{sty['reset']}")
     elif command.startswith("exit"):
         print("Ending CLI...")
         exit()
     else:
-        print(f"{style['red']}'{command}' not a recognised command. Use 'help' to view a list of commands.{style['reset']}")
+        print(f"{sty['red']}'{command}' not a recognised command. Use 'help' to view a list of commands.{sty['reset']}")
     if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
         inSolusDirectory = "$"
     else:
         inSolusDirectory = "~"
 
 # like and subscribe for more epic code
-
