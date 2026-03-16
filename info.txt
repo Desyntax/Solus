@@ -1,2 +1,2 @@
-Solus CLI, build indev_4 made with love from Desyntax.
-Type 'help' to view a list of commands.
+{blue}Solus CLI{reset}, build indev_4. Made with {red}<3{reset} from {desyntax}.
+Type '{underl}help{reset}' to view a list of commands.
