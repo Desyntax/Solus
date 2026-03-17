@@ -260,7 +260,8 @@ while True:
                 if scan.count(";m") > 0:
                     file = open(scan[1], "r")
                     scan = file.read()
-                    print(scan.format_map({"rainbow": sty_rainbow("."), **sty}))
+                    scan = scan.format_map(sty)
+                    print(scan)
                     file.close()
                 else:
                     file = open(scan[1])
