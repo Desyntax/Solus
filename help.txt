@@ -4,7 +4,7 @@ command {green}<necessary_args> {blue}[;optional_args]{reset} -- Description {go
 Interpreter format:
 {underl}(USERNAME)@(Solusname)(directory){reset}>
 
-help {blue}[command]{reset}          -- Displays this help message
+help {blue}[cmd]{reset}              -- Displays this help message
 logout                  -- Logs out of Solus
 exit                    -- Logs out of Solus and kills the CLI
 output {green}<str>{reset}            -- Prints {green}<str>{reset} to the screen
@@ -14,13 +14,15 @@ scan {green}<file> {blue}[;m]{reset}        -- Prints text from {green}<file>{re
 nano {green}<file> {blue}[;a]{reset}        -- Overwrites text in {green}<file>{reset} or appends with {blue}[;a]{reset}
 kin {green}<dir>{reset}               -- Creates a directory called {green}<dir> {gold}[os]{reset}
 touch {green}<file>{reset}            -- Creates a file called {green}<file> {gold}[pathlib]{reset}
+sign {green}<file>{reset}             -- Returns metadata from {green}<file>{reset}
 boom {green}<file>{reset}             -- Deletes {green}<file>{reset} from current directory {gold}[shutil, os]{reset}
 rep {green}<file> <str/dir>{reset}    -- Renames {green}<file>{reset} to {green}<str>{reset} or moves {green}<file>{reset} to {green}<dir> {gold}[os]{reset}
 copy {green}<file> <dir>{reset}       -- Copies {green}<file>{reset} to {green}<dir> {gold}[pathlib]{reset}
 username {green}<str>{reset}          -- Sets a new username {gold}[configparser]{reset}
 password {green}<str>{reset}          -- Sets a new password {gold}[configparser]{reset}
+login {green}<bool>{reset}            -- Toggles login prompt; default={green}True{reset} {gold}[configparser]{reset}
 solusname {green}<str>{reset}         -- Sets a new name for Solus {gold}[configparser]{reset}
 info                    -- Prints information about Solus
 copyright               -- Prints copyright information about Solus
 
-Use help {blue}[command]{reset} to view more details about a command.
+Use help {blue}[cmd]{reset} to view more details about a command.

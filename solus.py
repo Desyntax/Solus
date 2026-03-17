@@ -14,7 +14,7 @@ sty = {
 
 # imports
 try:
-    import time, os, sys, shutil, configparser, poop
+    import time, os, sys, shutil, configparser
     from pathlib import Path
 except ModuleNotFoundError:
     print(f"""{sty['red']}[Error] Solus has run into an error and cannot import certain necessary modules. Please ensure you have the following:{sty['reset']}
@@ -58,10 +58,11 @@ try:
     solus_info = {
         "username": config['SOLUS_INFO']['username'],
         "password": config['SOLUS_INFO']['password'],
-        "solusname": config['SOLUS_INFO']['solusname']}
+        "solusname": config['SOLUS_INFO']['solusname'],
+        "login": config['SOLUS_INFO']['login']}
     version = config['SOLUS_INFO']['version']
 except KeyError:
-    print("Error loading configuration file. Would you like to create it? (Y/n)")
+    print(f"{sty['red']}Error loading configuration file. Would you like to create it?{sty['reset']} (Y/n)")
     choice = input("> ").casefold()
     if choice == "n":
         print("Aborted.")
@@ -72,6 +73,7 @@ except KeyError:
             'username': 'guest',
             'password': 'password',
             'solusname': 'Solus',
+            'login': 'True',
             'version': 'indev_4'}
         with open('config.txt', 'w') as file:
             config.write(file)
@@ -79,15 +81,15 @@ except KeyError:
     solus_info = {
         "username": config['SOLUS_INFO']['username'],
         "password": config['SOLUS_INFO']['password'],
-        "solusname": config['SOLUS_INFO']['solusname']}
+        "solusname": config['SOLUS_INFO']['solusname'],
+        "login": config['SOLUS_INFO']['login']}
     version = config['SOLUS_INFO']['version']
-    print("Created configuration file.")
+    print(f"{sty['green']}[Info]{sty['reset']} Created configuration file.")
     print("Username: 'guest'; password: 'password'.")
 print(f"{sty['green']}[Info]{sty['reset']} Loaded configuration file.")
 
 # variables
 welcomeMessage = f"Solus CLI {version}, created by Desyntax on 24/02/2026."
-command = ""
 inSolusDirectory = "$"
 copyr = f"Solus {version}, created by Desyntax. All content, including source code, are public domain."
 print(f"{sty['green']}[Info]{sty['reset']} Loaded variables.")
@@ -200,10 +202,7 @@ print(f"{sty['green']}[Info]{sty['reset']} Loaded definitions.")
 # initialise
 if dangerousProceed != "y":
     print(f"{sty['blue']}[OS]{sty['reset']} Solus is running on a {sty['blue']}{sys.platform}{sty['reset']} system.")
-    if sys.platform == "win32":
-        dirSep = "\""
-    else:
-        dirSep = "/"
+    dirSep = os.sep
     cwd = __file__.removesuffix(f"{dirSep}solus.py")
     print(f"{sty['blue']}[OS]{sty['reset']} Found {sty['blue']}{os.cpu_count()}{sty['reset']} CPU threads.")
     try:
@@ -218,7 +217,8 @@ else:
     print(f"{sty['gold']}[Warn]{sty['reset']} Skipped checking OS due to missing modules.")
 print(f"{sty['green']}No fatal errors encountered during boot.{sty['reset']}", end="\n\n")
 print(welcomeMessage, end="\n\n")
-login()
+if config['SOLUS_INFO']['login'] == "True":
+    login()
 
 while True:
     command = input(f"{sty['red']}{solus_info['username'].upper()}{sty['green']}@{sty['blue']}{solus_info['solusname']}{sty['green']}{inSolusDirectory}{sty['reset']}> ")
@@ -239,7 +239,10 @@ while True:
                 print(f"{sty['red']}Error: {e}{sty['reset']}")
     elif command == "logout": # logout
         print("You have successfully logged out.")
-        login()
+        if config['SOLUS_INFO']['login'] == "True":
+            login()
+        else:
+            exit()
     elif command.startswith("output"): # output
         if command.startswith("output "):
             try:
@@ -257,8 +260,7 @@ while True:
                 if scan.count(";m") > 0:
                     file = open(scan[1], "r")
                     scan = file.read()
-                    scan = scan.format_map(sty)
-                    print(scan)
+                    print(scan.format_map({"rainbow": sty_rainbow("."), **sty}))
                     file.close()
                 else:
                     file = open(scan[1])
@@ -292,8 +294,7 @@ while True:
         try:
             file = open("info.txt", "r")
             infomsg = file.read()
-            infomsg = infomsg
-            print(infomsg.format_map({"desyntax": sty_rainbow("Desyntax"), **sty}))
+            print(infomsg.format_map(sty))
             file.close()
             del infomsg
         except FileNotFoundError:
@@ -315,7 +316,7 @@ while True:
         if command.startswith("ls "):
             print(f"{sty['red']}'ls' takes zero arguments.{sty['reset']}")
         else:
-            print(f"{sty['green']}All in '{cwd}{sty['reset']}':")
+            print(f"{sty['green']}All in '{cwd}':{sty['reset']}")
             ls(os.listdir(cwd), "Name", "Size")
     elif command.startswith("cwd"):  # cwd
         if command.startswith("cwd "):
@@ -384,9 +385,31 @@ while True:
                 print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
             print(f"{sty['red']}'copy' takes at least two arguments, <file> and <dir>.{sty['reset']}")
-    elif command.startswith("exit"):
+    elif command.startswith("exit"): # exit
         print("Ending CLI...")
         exit()
+    elif command.startswith("sign"): # sign
+        sign = command.split(maxsplit=2)
+        try:
+            print(f"{sty['green']}Metadata from '{sign[1]}'{sty['reset']}")
+            print(sign[1])
+            meta = os.stat({sign[1]})
+            print(f"Path: {cwd}{dirSep}{sign[1]}")
+            print(f"Size: {meta.st_size} bytes")
+            print(f"Type: {meta.st_type}")
+            print(f"Storage device: {meta.st_dev}")
+            print(f"Owner: {meta.st_uid}")
+            del meta, sign
+        except Exception as e:
+            print(f"{sty['red']}Error: {e}{sty['reset']}")
+    elif command.startswith("login"):
+        if command.startswith("login "):
+            log = command.split(maxsplit=2)
+            log[1] = log[1].casefold()
+            if log[1] == "true" or log[1] == "y":
+                config['SOLUS_INFO']['login'] = "True"
+            elif log[1] == "false" or log[1] == "n":
+                config['SOLUS_INFO']['login'] = "False"
     else:
         print(f"{sty['red']}'{command}' not a recognised command. Use 'help' to view a list of commands.{sty['reset']}")
     if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
