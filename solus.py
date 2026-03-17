@@ -42,7 +42,7 @@ except MemoryError:
     print("Solus does not have enough memory to import necessary modules. Press RETURN to exit.")
     input("> ")
     exit()
-bootStart = time.time()
+bootStart = time.perf_counter()
 print(f"{sty['green']}Loaded necessary modules.{sty['reset']}")
 
 # config
@@ -106,13 +106,21 @@ def write(mode):
     else:
         print(f"{command.removeprefix('nano ')} opened in APPEND mode")
     print("Type <close> to end writing and save.")
+    print("Type <cancel> to revert all changes and close.")
+    Path.touch(f".NANO_{file.name}")
+    tempfile = open(f".NANO_{file.name}", mode)
+    tempfile.write(file.read())
     while True:
         newline = input()
         if newline == "<close>":
-            print(f"Closed {command.removeprefix('nano ')} and saved all changes.")
+            print(f"{sty['green']}Closed {command.removeprefix('nano ')} and saved all changes.{sty['reset']}")
+            file.write(tempfile.read())
             break
-        file.write(newline + "\n")
-    file.close()
+        elif newline == "<cancel>":
+            print(f"{sty['gold']}Cancelled all changes.{sty['reset']}")
+            break
+        tempfile.write(newline + "\n")
+    tempfile.close()
 def modifyInfo(part):
     global config, solus_info, command
     if command.startswith(f"{part} "):
@@ -138,7 +146,7 @@ def ls(main, name, size):
     global os, cwd, sty
     allinpath = {}
     print(f"{sty['blue']}{name:<20} {sty['green']}{size:>10}{sty['reset']}")
-    print("-" * 32)
+    print("=" * 32)
     isDir = False
     for node in main:
         allinpath[node] = 0
@@ -149,9 +157,9 @@ def ls(main, name, size):
                     total_size += entry.stat().st_size
                     isDir = False
                 elif entry.is_dir():
-                    total_size += ls(cwd)
+                    total_size += getdirsize(cwd)
                     isDir = True
-            allinpath[node] = total_size
+                allinpath[node] = total_size
     for row in main:
         filesize = allinpath[row]
         fsm = " B" # file size measurement (bytes, kilobytes, etc)
@@ -171,17 +179,17 @@ def ls(main, name, size):
             print(f"{sty['reset']}{row:<20} {filesize:>10,}{fsm}")
 def getdirsize(directory):
     global os, cwd
-    total = 0
-    with os.scandir(directory) as it:
-        for entry in it:
-            if entry.is_file():
-                total += entry.stat().st_size
-            elif entry.is_dir():
-                total += getdirsize(cwd)
-    return total
-
+    total_size = 0
+    for files in os.scandir(cwd):
+        try:
+            if os.path.isdir(files):
+                getdirsize(files)
+            else:
+                total_size += os.path.getsize(files)
+        except RecursionError:
+            break
+    return total_size
 print(f"{sty['green']}Loaded definitions.{sty['reset']}")
-
 # initialise
 if dangerousProceed != "y":
     print(f"Solus is running on a {sty['blue']}{sys.platform}{sty['reset']} system.")
@@ -195,9 +203,9 @@ if dangerousProceed != "y":
         print(f"Solus occupies {sty['blue']}{os.path.getsize(f'{cwd}{dirSep}solus.py'):,d}{sty['reset']} bytes of disk space.")
     except FileNotFoundError:
         print("Solus couldn't locate itself to record its disk usage. Proceeding anyway...")
-    bootEnd = time.time()
+    bootEnd = time.perf_counter()
     bootTime = bootEnd - bootStart
-    print(f"Booted in {sty['blue']}{round((bootTime * 1000), 4)}{sty['reset']} milliseconds.")
+    print(f"Booted in {sty['blue']}{round(bootTime * 1000, 4)}{sty['reset']} milliseconds.")
     del bootStart, bootEnd, bootTime
 else:
     print("Skipped checking OS due to missing modules.")
@@ -207,7 +215,7 @@ print(welcomeMessage, end="\n\n")
 login()
 
 while True:
-    command = input(f"{sty['reset']}{sty['red']}{solus_info['username'].upper()}{sty['pink']}@{sty['blue']}{solus_info['solusname']}{sty['pink']}{inSolusDirectory}{sty['reset']}> ")
+    command = input(f"{sty['red']}{solus_info['username'].upper()}{sty['green']}@{sty['blue']}{solus_info['solusname']}{sty['green']}{inSolusDirectory}{sty['reset']}> ")
     if command == "help": # help
         try:
             file = open("help.txt", "r")
@@ -236,14 +244,17 @@ while True:
     elif command.startswith("scan"): # scan
         if command.startswith("scan "):
             try:
-                file = open(command.removeprefix('scan '))
-                file.close()
-                try:
-                    file = open(f"{command.removeprefix('scan ')}", "r")
+                scan = command.split(maxsplit=2)
+                if scan.count(";m") > 0:
+                    file = open(scan[1], "r")
+                    scan = file.read()
+                    scan = scan.format_map(sty)
+                    print(scan)
+                    file.close()
+                else:
+                    file = open(scan[1])
                     print(file.read())
                     file.close()
-                except FileNotFoundError:
-                    print(f"{sty['red']}File '{command.removeprefix('scan ')}' not found. Check your spelling, its existence, or your permissions.{sty['reset']}")
             except Exception as e:
                 print(f"{sty['red']}Error: {e}{sty['reset']}")
         else:
@@ -295,7 +306,7 @@ while True:
         if command.startswith("ls "):
             print(f"{sty['red']}'ls' takes zero arguments.{sty['reset']}")
         else:
-            print(f"All in '{cwd}':")
+            print(f"{sty['green']}All in '{cwd}{sty['reset']}':")
             ls(os.listdir(cwd), "Name", "Size")
     elif command.startswith("cwd"):  # cwd
         if command.startswith("cwd "):
