@@ -135,17 +135,23 @@ def sty_rainbow(text):
     result += sty["reset"]
     return result
 def ls(main, name, size):
-    global os, cwd
+    global os, cwd, sty
     allinpath = {}
     print(f"{sty['blue']}{name:<20} {sty['green']}{size:>10}{sty['reset']}")
     print("-" * 32)
+    isDir = False
     for node in main:
-        allinpath[node] = os.path.getsize(node)
-        if os.path.isdir(allinpath[node]) == True:
-            for path, dirs, files in os.walk(Folderpath):
-                for f in files:
-                    fp = os.path.join(path, f)
-                    size += os.path.getsize(fp)
+        allinpath[node] = 0
+        total_size = 0
+        with os.scandir(cwd) as it:
+            for entry in it:
+                if entry.is_file():
+                    total_size += entry.stat().st_size
+                    isDir = False
+                elif entry.is_dir():
+                    total_size += ls(cwd)
+                    isDir = True
+            allinpath[node] = total_size
     for row in main:
         filesize = allinpath[row]
         fsm = " B" # file size measurement (bytes, kilobytes, etc)
@@ -153,11 +159,26 @@ def ls(main, name, size):
             filesize /= 1024
             fsm = "KB"
         elif filesize >= 1048576:
+            filesize /= 1048576
             fsm = "MB"
         elif filesize >= 1073741824:
+            filesize /= 1073741824
             fsm = "GB"
         filesize = round(filesize, 2)
-        print(f"{row:<20} {filesize:>10,}{fsm}")
+        if isDir == True:
+            print(f"{sty['green']}{row:<20} {filesize:>10,}{fsm}{sty['reset']}")
+        else:
+            print(f"{sty['reset']}{row:<20} {filesize:>10,}{fsm}")
+def getdirsize(directory):
+    global os, cwd
+    total = 0
+    with os.scandir(directory) as it:
+        for entry in it:
+            if entry.is_file():
+                total += entry.stat().st_size
+            elif entry.is_dir():
+                total += getdirsize(cwd)
+    return total
 
 print(f"{sty['green']}Loaded definitions.{sty['reset']}")
 
