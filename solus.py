@@ -14,7 +14,7 @@ sty = {
 
 # imports
 try:
-    import time, os, sys, shutil, configparser
+    import time, os, sys, shutil, configparser, stat
     from pathlib import Path
 except ModuleNotFoundError:
     print(f"""{sty['red']}[Error] Solus has run into an error and cannot import certain necessary modules. Please ensure you have the following:{sty['reset']}
@@ -22,6 +22,7 @@ except ModuleNotFoundError:
 os              -- {sty['gold']}in commands{sty['reset']}
 sys             -- {sty['blue']}optional{sty['reset']}
 time            -- {sty['blue']}optional{sty['reset']}
+stat            -- {sty['gold']}in commands{sty['reset']}
 shutil          -- {sty['gold']}in commands{sty['reset']}
 pathlib         -- {sty['gold']}in commands{sty['reset']}
 configparser    -- {sty['blue']}optional{sty['reset']}
@@ -108,27 +109,46 @@ def login():
         else:
             print(f"{sty['reset']}{sty['red']}Incorrect username or password.{sty['reset']}")
 def write(mode):
-    file = open(f"{command.removeprefix('nano ')}", mode)
+    filename = command.removeprefix('nano ')
     if mode == "w":
-        print(f"{command.removeprefix('nano ')} opened in OVERWRITE mode")
+        print(f"{filename} opened in OVERWRITE mode")
     else:
-        print(f"{command.removeprefix('nano ')} opened in APPEND mode")
-    print("Type <close> to end writing and save.")
-    print("Type <cancel> to revert all changes and close.")
-    Path.touch(f".NANO_{file.name}")
-    tempfile = open(f".NANO_{file.name}", mode)
-    tempfile.write(file.read())
+        print(f"{filename} opened in APPEND mode")
+    print(f"Type {sty['pink']}<close>{sty['reset']} to end writing and save.")
+    print(f"Type {sty['pink']}<cancel>{sty['reset']} to revert all changes and close.")
+    
+    # Read original file content
+    try:
+        with open(filename, "r") as og_file:
+            content = og_file.read()
+    except FileNotFoundError:
+        content = ""
+    
+    # Create and initialize temp file
+    tempfile_name = f".NANO_{filename}"
+    Path.touch(tempfile_name)
+    with open(tempfile_name, "w") as tempfile:
+        tempfile.write(content)
+    
+    # Let user edit
     while True:
         newline = input()
         if newline == "<close>":
-            print(f"{sty['green']}Closed {command.removeprefix('nano ')} and saved all changes.{sty['reset']}")
-            file.write(tempfile.read())
+            print(f"{sty['green']}Closed {filename} and saved all changes.{sty['reset']}")
+            # Read temp file and write to original based on mode
+            with open(tempfile_name, "r") as tempfile:
+                new_content = tempfile.read()
+            with open(filename, mode) as output_file:
+                output_file.write(new_content)
+            os.remove(tempfile_name)
             break
         elif newline == "<cancel>":
             print(f"{sty['gold']}Cancelled all changes.{sty['reset']}")
+            os.remove(tempfile_name)
             break
-        tempfile.write(newline + "\n")
-    tempfile.close()
+        else:
+            with open(tempfile_name, "a") as tempfile:
+                tempfile.write(newline + "\n")
 def modifyInfo(part):
     global config, solus_info, command
     if command.startswith(f"{part} "):
@@ -151,37 +171,39 @@ def sty_rainbow(text):
     result += sty["reset"]
     return result
 def ls(main, name, size):
-    global os, cwd, sty
+    global os, cwd, sty, dirSep
     allinpath = {}
     print(f"{sty['blue']}{name:<20} {sty['green']}{size:>11}{sty['reset']}")
     print("=" * 32)
-    isDir = False
     for node in main:
-        allinpath[node] = 0
         total_size = 0
-        for entry in os.scandir(main[allinpath[node]]):
-            if entry.is_file():
-                total_size += os.path.getsize(entry)
-                isDir = False
-            elif os.path.isdir(entry):
-                total_size += getdirsize(entry)
-                isDir = True
-            allinpath[node] = total_size
+        full_path = f"{cwd}{dirSep}{node}"
+        try:
+            if os.path.isfile(full_path):
+                total_size = os.path.getsize(full_path)
+                allinpath[node] = (total_size, False)
+            elif os.path.isdir(full_path):
+                total_size = getdirsize(full_path)
+                allinpath[node] = (total_size, True)
+            else:
+                allinpath[node] = (0, False)
+        except Exception:
+            allinpath[node] = (0, False)
     for row in main:
-        filesize = allinpath[row]
+        filesize, isDir = allinpath[row]
         fsm = " B" # file size measurement (bytes, kilobytes, etc)
-        if filesize >= 1024:
-            filesize /= 1024
-            fsm = "KB"
+        if filesize >= 1073741824:
+            filesize /= 1073741824
+            fsm = "GB"
         elif filesize >= 1048576:
             filesize /= 1048576
             fsm = "MB"
-        elif filesize >= 1073741824:
-            filesize /= 1073741824
-            fsm = "GB"
+        elif filesize >= 1024:
+            filesize /= 1024
+            fsm = "KB"
         filesize = round(filesize, 2)
         if isDir:
-            print(f"{sty['green']}{row:<20} {filesize:>10,}{fsm}{sty['reset']}")
+            print(f"{sty['green']}{row:<20}{sty['reset']} {filesize:>10,}{fsm}")
         else:
             print(f"{sty['reset']}{row:<20} {filesize:>10,}{fsm}")
 def getdirsize(start_path):
@@ -301,7 +323,10 @@ while True:
         if command.startswith("rep "):
             try:
                 rep = command.split(maxsplit=2)
-                os.rename(rep[1], rep[2])
+                dest = rep[2]
+                if os.path.isdir(dest):
+                    dest = os.path.join(dest, os.path.basename(rep[1]))
+                os.rename(rep[1], dest)
                 print(f"Successfully modified '{rep[1]}' to '{rep[2]}'.")
                 del rep
             except Exception as e:
@@ -388,13 +413,14 @@ while True:
         sign = command.split(maxsplit=2)
         try:
             print(f"{sty['green']}Metadata from '{sign[1]}'{sty['reset']}")
-            print(sign[1])
-            meta = os.stat({sign[1]})
+            meta = os.stat(sign[1])
             print(f"Path: {cwd}{dirSep}{sign[1]}")
-            print(f"Size: {meta.st_size} bytes")
-            print(f"Type: {meta.st_type}")
+            print(f"Type: {'Directory' if os.path.isdir(sign[1]) else 'File' if os.path.isfile(sign[1]) else 'Other'}")
+            print(f"Last accessed: {time.ctime(meta.st_ctime)}")
+            print(f"Size: {meta.st_size if os.path.isfile(sign[1]) else getdirsize(sign[1]) if os.path.isdir(sign[1]) else 'Unknown'} bytes")
             print(f"Storage device: {meta.st_dev}")
-            print(f"Owner: {meta.st_uid}")
+            print(f"Owner ID: {oct(meta.st_uid)}")
+            print(f"Permissions: {stat.filemode(meta.st_mode)}")
             del meta, sign
         except Exception as e:
             print(f"{sty['red']}Error: {e}{sty['reset']}")
