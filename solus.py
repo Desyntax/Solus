@@ -153,21 +153,20 @@ def sty_rainbow(text):
 def ls(main, name, size):
     global os, cwd, sty
     allinpath = {}
-    print(f"{sty['blue']}{name:<20} {sty['green']}{size:>10}{sty['reset']}")
+    print(f"{sty['blue']}{name:<20} {sty['green']}{size:>11}{sty['reset']}")
     print("=" * 32)
     isDir = False
     for node in main:
         allinpath[node] = 0
         total_size = 0
-        with os.scandir(cwd) as it:
-            for entry in it:
-                if entry.is_file():
-                    total_size += entry.stat().st_size
-                    isDir = False
-                elif entry.is_dir():
-                    total_size += getdirsize(cwd)
-                    isDir = True
-                allinpath[node] = total_size
+        for entry in os.scandir(main[allinpath[node]]):
+            if entry.is_file():
+                total_size += os.path.getsize(entry)
+                isDir = False
+            elif os.path.isdir(entry):
+                total_size += getdirsize(entry)
+                isDir = True
+            allinpath[node] = total_size
     for row in main:
         filesize = allinpath[row]
         fsm = " B" # file size measurement (bytes, kilobytes, etc)
@@ -181,21 +180,17 @@ def ls(main, name, size):
             filesize /= 1073741824
             fsm = "GB"
         filesize = round(filesize, 2)
-        if isDir == True:
+        if isDir:
             print(f"{sty['green']}{row:<20} {filesize:>10,}{fsm}{sty['reset']}")
         else:
             print(f"{sty['reset']}{row:<20} {filesize:>10,}{fsm}")
-def getdirsize(directory):
-    global os, cwd
+def getdirsize(start_path):
     total_size = 0
-    for files in os.scandir(cwd):
-        try:
-            if os.path.isdir(files):
-                getdirsize(files)
-            else:
-                total_size += os.path.getsize(files)
-        except RecursionError:
-            break
+    for dirpath, dirnames, filenames in os.walk(start_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
     return total_size
 print(f"{sty['green']}[Info]{sty['reset']} Loaded definitions.")
 
