@@ -2,7 +2,7 @@ Solus command line interface, build indev_4. Open-sourced project.
 Command format:
 command {green}<necessary_args> {blue}[;optional_args]{reset} -- Description {gold}[modules_required]{reset}
 Interpreter format:
-{underl}(USERNAME)@(Solusname)(directory){reset}>
+{red}USERNAME{green}@{blue}Solusname{green}(directory){reset}>
 
 help {blue}[cmd]{reset}              -- Displays this help message
 logout                  -- Logs out of Solus
@@ -25,4 +25,10 @@ solusname {green}<str>{reset}         -- Sets a new name for Solus {gold}[config
 info                    -- Prints information about Solus
 copyright               -- Prints copyright information about Solus
 
-Use help {blue}[cmd]{reset} to view more details about a command.
+All {green}<file>{reset}, {green}<dir>{reset}, and {green}<file/dir>{reset} arguments are case-sensitive.
+
+Directory symbols:
+{green}${reset} -- In Solus' directory
+{green}~{reset} -- Elsewhere
+
+Use help {blue}[cmd]{reset} to view more details about a command. (not yet implemented)

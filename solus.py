@@ -109,41 +109,31 @@ def login():
         else:
             print(f"{sty['reset']}{sty['red']}Incorrect username or password.{sty['reset']}")
 def write(mode):
-    filename = command.removeprefix('nano ')
+    filename = nano[1]
     if mode == "w":
-        print(f"{filename} opened in OVERWRITE mode")
+        print(f"'{filename}' opened in {sty['blue']}OVERWRITE{sty['reset']} mode")
     else:
-        print(f"{filename} opened in APPEND mode")
+        print(f"'{filename}' opened in {sty['blue']}APPEND{sty['reset']} mode")
     print(f"Type {sty['pink']}<close>{sty['reset']} to end writing and save.")
     print(f"Type {sty['pink']}<cancel>{sty['reset']} to revert all changes and close.")
-    
-    # Read original file content
-    try:
-        with open(filename, "r") as og_file:
-            content = og_file.read()
-    except FileNotFoundError:
-        content = ""
-    
-    # Create and initialize temp file
+    with open(filename, "r") as old_file:
+        content = old_file.read()
     tempfile_name = f".NANO_{filename}"
     Path.touch(tempfile_name)
     with open(tempfile_name, "w") as tempfile:
         tempfile.write(content)
-    
-    # Let user edit
     while True:
         newline = input()
         if newline == "<close>":
             print(f"{sty['green']}Closed {filename} and saved all changes.{sty['reset']}")
-            # Read temp file and write to original based on mode
             with open(tempfile_name, "r") as tempfile:
                 new_content = tempfile.read()
-            with open(filename, mode) as output_file:
+            with open(filename, "w") as output_file:
                 output_file.write(new_content)
             os.remove(tempfile_name)
             break
         elif newline == "<cancel>":
-            print(f"{sty['gold']}Cancelled all changes.{sty['reset']}")
+            print(f"{sty['green']}Cancelled all changes.{sty['reset']}")
             os.remove(tempfile_name)
             break
         else:
@@ -192,11 +182,17 @@ def ls(main, name, size):
     for row in main:
         filesize, isDir = allinpath[row]
         fsm = " B" # file size measurement (bytes, kilobytes, etc)
-        if filesize >= 1073741824:
-            filesize /= 1073741824
+        if filesize >= 1024**5:
+            filesize /= 1024**5
+            fsm = "PB"
+        elif filesize >= 1024**4:
+            filesize /= 1024**4
+            fsm = "TB"
+        elif filesize >= 1024**3:
+            filesize /= 1024**3
             fsm = "GB"
-        elif filesize >= 1048576:
-            filesize /= 1048576
+        elif filesize >= 1024**2:
+            filesize /= 1024**2
             fsm = "MB"
         elif filesize >= 1024:
             filesize /= 1024
@@ -232,7 +228,7 @@ if dangerousProceed != "y":
     del bootStart, bootEnd, bootTime
 else:
     print(f"{sty['gold']}[Warn]{sty['reset']} Skipped checking OS due to missing modules.")
-print(f"{sty['green']}No fatal errors encountered during boot.{sty['reset']}", end="\n\n")
+print(f"{sty['green']}[Info]{sty['reset']} No fatal errors encountered during boot/", end="\n\n")
 print(welcomeMessage, end="\n\n")
 if config['SOLUS_INFO']['login'] == "True":
     login()
@@ -278,11 +274,11 @@ while True:
                     file = open(scan[1], "r")
                     scan = file.read()
                     scan = scan.format_map(sty)
-                    print(scan)
+                    print(scan, end="")
                     file.close()
                 else:
                     file = open(scan[1])
-                    print(file.read())
+                    print(file.read(), end="")
                     file.close()
             except Exception as e:
                 print(f"{sty['red']}Error: {e}{sty['reset']}")
@@ -296,12 +292,15 @@ while True:
         modifyInfo("solusname")
     elif command.startswith("nano"): # nano
         if command.startswith("nano "):
+            nano = command.split(maxsplit=3)
             try:
-                file = open(command.removeprefix('nano '))
+                file = open(nano[1])
                 file.close()
                 try:
-                    command.index(f"{command.removeprefix('nano ')}", command.find(";"))
-                    write("a")
+                    if nano[2] == ";a":
+                        write("a")
+                    else:
+                        write("w")
                 except Exception:
                     write("w")
             except Exception as e:
@@ -359,7 +358,7 @@ while True:
                 os.remove(command.removeprefix("boom "))
                 print(f"Successfully deleted '{command.removeprefix('boom ')}'.")
             except IsADirectoryError:
-                print(f"{sty['red']}'{command.removeprefix('boom ')}' is a directory.{sty['reset']} Would you like to remove it? (y/N)")
+                print(f"{sty['gold']}[Warn]{sty['reset']} '{command.removeprefix('boom ')}' is a directory. Would you like to remove it? (y/N)")
                 choice = input("> ").casefold()
                 if choice == "y":
                     try:
@@ -412,14 +411,14 @@ while True:
     elif command.startswith("sign"): # sign
         sign = command.split(maxsplit=2)
         try:
-            print(f"{sty['green']}Metadata from '{sign[1]}'{sty['reset']}")
             meta = os.stat(sign[1])
+            print(f"{sty['green']}Metadata from '{sign[1]}'{sty['reset']}")
             print(f"Path: {cwd}{dirSep}{sign[1]}")
             print(f"Type: {'Directory' if os.path.isdir(sign[1]) else 'File' if os.path.isfile(sign[1]) else 'Other'}")
             print(f"Last accessed: {time.ctime(meta.st_ctime)}")
             print(f"Size: {meta.st_size if os.path.isfile(sign[1]) else getdirsize(sign[1]) if os.path.isdir(sign[1]) else 'Unknown'} bytes")
             print(f"Storage device: {meta.st_dev}")
-            print(f"Owner ID: {oct(meta.st_uid)}")
+            print(f"Owner ID: {meta.st_uid}")
             print(f"Permissions: {stat.filemode(meta.st_mode)}")
             del meta, sign
         except Exception as e:
