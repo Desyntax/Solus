@@ -14,7 +14,7 @@ sty = {
 
 # imports
 try:
-    import time, os, sys, shutil, configparser, stat
+    import time, os, sys, shutil, configparser, stat, errors
     from pathlib import Path
 except ModuleNotFoundError:
     print(f"""{sty['red']}[Error] Solus has run into an error and cannot import certain necessary modules. Please ensure you have the following:{sty['reset']}
@@ -23,6 +23,7 @@ os              -- {sty['gold']}in commands{sty['reset']}
 sys             -- {sty['blue']}optional{sty['reset']}
 time            -- {sty['blue']}optional{sty['reset']}
 stat            -- {sty['gold']}in commands{sty['reset']}
+errors (local)  -- {sty['red']}necessary{sty['reset']}
 shutil          -- {sty['gold']}in commands{sty['reset']}
 pathlib         -- {sty['gold']}in commands{sty['reset']}
 configparser    -- {sty['blue']}optional{sty['reset']}
@@ -30,6 +31,7 @@ configparser    -- {sty['blue']}optional{sty['reset']}
 where:
 {sty['blue']}optional{sty['reset']}        -- used to assess OS or fetch config
 {sty['gold']}in commands{sty['reset']}     -- necessary to perform some commands
+{sty['red']}necessary{sty['reset']}       -- handles important functions like error handling
 
 On your machine's command line, run 'pip install <module>'.
 You might be able to run Solus without these modules imported, but functionality could be severely limited.
@@ -96,6 +98,7 @@ copyr = f"Solus {version}, created by Desyntax. All content, including source co
 print(f"{sty['green']}[Info]{sty['reset']} Loaded variables.")
 
 # definitions
+@errors.ExceptionHandler()
 def login():
     global solus_info
     print("Please sign in below.")
@@ -108,6 +111,7 @@ def login():
             break
         else:
             print(f"{sty['reset']}{sty['red']}Incorrect username or password.{sty['reset']}")
+@errors.ExceptionHandler()
 def write(mode):
     filename = nano[1]
     if mode == "w":
@@ -139,6 +143,7 @@ def write(mode):
         else:
             with open(tempfile_name, "a") as tempfile:
                 tempfile.write(newline + "\n")
+@errors.ExceptionHandler()
 def modifyInfo(part):
     global config, solus_info, command
     if command.startswith(f"{part} "):
@@ -151,6 +156,7 @@ def modifyInfo(part):
         print(f"Updated {part} to {newName}.")
     else:
         print(f"{sty['red']}'{part}' takes one argument, <str>.{sty['reset']}")
+@errors.ExceptionHandler()
 def sty_rainbow(text):
     global sty
     stymap = [sty["red"], sty["gold"], sty["green"], sty["blue"], sty["pink"]]
@@ -160,11 +166,12 @@ def sty_rainbow(text):
         result += f"{color}{t}"
     result += sty["reset"]
     return result
+@errors.ExceptionHandler()
 def ls(main, name, size):
     global os, cwd, sty, dirSep
     allinpath = {}
-    print(f"{sty['blue']}{name:<20} {sty['green']}{size:>11}{sty['reset']}")
-    print("=" * 32)
+    print(f"{sty['blue']}{name:<20} {sty['green']}{size:>12}{sty['reset']}")
+    print("=" * 33)
     for node in main:
         total_size = 0
         full_path = f"{cwd}{dirSep}{node}"
@@ -202,6 +209,7 @@ def ls(main, name, size):
             print(f"{sty['green']}{row:<20}{sty['reset']} {filesize:>10,}{fsm}")
         else:
             print(f"{sty['reset']}{row:<20} {filesize:>10,}{fsm}")
+@errors.ExceptionHandler()
 def getdirsize(start_path):
     total_size = 0
     for dirpath, dirnames, filenames in os.walk(start_path):
@@ -228,7 +236,7 @@ if dangerousProceed != "y":
     del bootStart, bootEnd, bootTime
 else:
     print(f"{sty['gold']}[Warn]{sty['reset']} Skipped checking OS due to missing modules.")
-print(f"{sty['green']}[Info]{sty['reset']} No fatal errors encountered during boot/", end="\n\n")
+print(f"{sty['green']}[Info]{sty['reset']} No fatal errors encountered during boot.", end="\n\n")
 print(welcomeMessage, end="\n\n")
 if config['SOLUS_INFO']['login'] == "True":
     login()
@@ -344,7 +352,7 @@ while True:
                 new_dir = command.removeprefix("cwd ")
                 os.chdir(new_dir)
                 cwd = os.getcwd()
-                print(f"Changed directory to '{cwd}'")
+                print(f"{sty['green']}Changed directory to '{cwd}'{sty['reset']}")
                 del new_dir
             except Exception as e:
                 print(f"{sty['red']}Error: {e}{sty['reset']}")
@@ -415,7 +423,7 @@ while True:
             print(f"{sty['green']}Metadata from '{sign[1]}'{sty['reset']}")
             print(f"Path: {cwd}{dirSep}{sign[1]}")
             print(f"Type: {'Directory' if os.path.isdir(sign[1]) else 'File' if os.path.isfile(sign[1]) else 'Other'}")
-            print(f"Last accessed: {time.ctime(meta.st_ctime)}")
+            print(f"Last accessed: {time.ctime(meta.st_mtime)}")
             print(f"Size: {meta.st_size if os.path.isfile(sign[1]) else getdirsize(sign[1]) if os.path.isdir(sign[1]) else 'Unknown'} bytes")
             print(f"Storage device: {meta.st_dev}")
             print(f"Owner ID: {meta.st_uid}")
@@ -423,7 +431,7 @@ while True:
             del meta, sign
         except Exception as e:
             print(f"{sty['red']}Error: {e}{sty['reset']}")
-    elif command.startswith("login"):
+    elif command.startswith("login"): # login
         if command.startswith("login "):
             log = command.split(maxsplit=2)
             log[1] = log[1].casefold()
@@ -431,6 +439,8 @@ while True:
                 config['SOLUS_INFO']['login'] = "True"
             elif log[1] == "false" or log[1] == "n":
                 config['SOLUS_INFO']['login'] = "False"
+        else:
+            print(f"{sty['red']}'login' takes at least one argument, <bool>.{sty['reset']}")
     else:
         print(f"{sty['red']}'{command}' not a recognised command. Use 'help' to view a list of commands.{sty['reset']}")
     if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
