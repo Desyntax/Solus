@@ -10,7 +10,10 @@ sty = {
     "pink": "\x1b[95m",
     "underl": "\x1b[4m",
     "bold": "\x1b[1m",
-    "hide": "\x1b[8m"}
+    "hide": "\x1b[8m",
+    "dim": "\x1b[2m",
+    "rainbow": "" # empty because it's a placeholder
+    }
 
 # imports
 try:
@@ -93,7 +96,7 @@ print(f"{sty['green']}[Info]{sty['reset']} Loaded configuration file.")
 
 # variables
 welcomeMessage = f"Solus CLI {version}, created by Desyntax on 24/02/2026."
-inSolusDirectory = "$"
+dirsym = "$"
 copyr = f"Solus {version}, created by Desyntax. All content, including source code, are public domain."
 print(f"{sty['green']}[Info]{sty['reset']} Loaded variables.")
 
@@ -242,7 +245,7 @@ if config['SOLUS_INFO']['login'] == "True":
     login()
 
 while True:
-    command = input(f"{sty['red']}{solus_info['username'].upper()}{sty['green']}@{sty['blue']}{solus_info['solusname']}{sty['green']}{inSolusDirectory}{sty['reset']}> ")
+    command = input(f"{sty['red']}{solus_info['username'].upper()}{sty['green']}@{sty['blue']}{solus_info['solusname']}{sty['green']}{dirsym}{sty['reset']}> ")
     if command == "help": # help
         if dangerousProceed == "y":
             print(helpList.format_map(sty))
@@ -278,18 +281,19 @@ while True:
         if command.startswith("scan "):
             try:
                 scan = command.split(maxsplit=2)
-                if scan.count(";m") > 0:
+                if scan[2] == ";m":
                     file = open(scan[1], "r")
                     scan = file.read()
+                    sty['rainbow'] = sty_rainbow(sty['rainbow'])
                     scan = scan.format_map(sty)
-                    print(scan, end="")
+                    print(scan)
                     file.close()
                 else:
                     file = open(scan[1])
                     print(file.read(), end="")
                     file.close()
             except Exception as e:
-                print(f"{sty['red']}Error: {e}{sty['reset']}")
+                print(f"{sty['red']}[Error]{sty['reset']} {e}")
         else:
             print(f"{sty['red']}'scan' takes one argument, <file>.{sty['reset']}")
     elif command.startswith("username"): # username
@@ -444,8 +448,10 @@ while True:
     else:
         print(f"{sty['red']}'{command}' not a recognised command. Use 'help' to view a list of commands.{sty['reset']}")
     if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
-        inSolusDirectory = "$"
+        dirsym = "$"
+    elif cwd == os.path.realpath(__file__):
+        dirsym = "/"
     else:
-        inSolusDirectory = "~"
+        dirsym = "~"
 
 # like and subscribe for more epic code
