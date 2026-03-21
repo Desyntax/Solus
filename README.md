@@ -6,6 +6,7 @@ INSTRUCTIONS FOR USE:
 5. Use the `help` command to view a list of commands
 
 DO NOT run `boom`, `nano`, or `rep` on important system files or directories. Solus will probably return a `PermissionError`, but I wouldn't risk it nonetheless.
+With FTP implemented, it is your responsibility to only connect to systems you are authorised to access.
 
 KNOWN ISSUES:
 * `nano` in OVERWRITE mode fails to overwrite the file contents, instead appends
