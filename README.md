@@ -1,9 +1,14 @@
-Solus is a command line interface developed solely by Desyntax (me). It exists so I can sharpen my skills at Python.
+INSTRUCTIONS FOR USE:
+1. Install Python 3.12.1 or newer
+2. Run `solus.py` in its residing directory. Don't run it from an external directory or it will fail to locate some necessary files
+3. If the interface looks strange, then run it on a different command line. Solus uses ANSI escape codes to stylise its text
+4. Login details: Username: `desyntax`, password: `password`. You can change these either in `config.txt` or by using the `username`/`password` commands
+5. Use the `help` command to view a list of commands
 
-Make sure you run `solus.py` in its residing folder; otherwise it will fail to locate `config.txt`, `help.txt`, and `info.txt`
-
-When logging in, use `desyntax` as username and `password` as password. You can change these either in `config.txt` or by using the `username`/`password` commands.
-
-Use the `help` command to view a list of commands.
+KNOWN ISSUES:
+* `nano` in OVERWRITE mode fails to overwrite the file contents, instead appends
+* `scan` with `;m` attribute does not properly stylise {rainbow} content
+* `sign` on very large directories fails to calculate size
+* `ls` in certain directories like root (/) does not list all directories
 
 Solus indev_4, open-sourced project. All content, including code, falls under public domain.

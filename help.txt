@@ -8,15 +8,16 @@ help {blue}[cmd]{reset}              -- Displays this help message
 logout                  -- Logs out of Solus
 exit                    -- Logs out of Solus and kills the CLI
 output {green}<str>{reset}            -- Prints {green}<str>{reset} to the screen
-ls {blue}[;h]{reset}                 -- Prints files and dirs in CWD to the screen {gold}[os]{reset}
+ls {blue}[;h]{reset}                 -- Prints nodes in CWD to the screen {gold}[os, time]{reset}
 cwd {green}<dir>{reset}               -- Changes current working directory to {green}<dir> {gold}[os]{reset}
+home                    -- Changes CWD to where Solus resides {gold}[os]{reset}
 scan {green}<file> {blue}[;m]{reset}        -- Prints text from {green}<file>{reset} and styles it if {blue}[;m]{reset}
 nano {green}<file> {blue}[;a]{reset}        -- Overwrites text in {green}<file>{reset} or appends with {blue}[;a]{reset}
 kin {green}<dir>{reset}               -- Creates a directory called {green}<dir> {gold}[os]{reset}
 touch {green}<file>{reset}            -- Creates a file called {green}<file> {gold}[pathlib]{reset}
 sign {green}<file>{reset}             -- Returns metadata from {green}<file>{reset}
 boom {green}<file>{reset}             -- Deletes {green}<file>{reset} from current directory {gold}[shutil, os]{reset}
-rep {green}<file> <str/dir>{reset}    -- Renames or moves {green}<file>{reset} to {green}<node>{reset} {gold}[os]{reset}
+rep {green}<file> <node>{reset}       -- Renames or moves {green}<file>{reset} to {green}<node>{reset} {gold}[os]{reset}
 copy {green}<file> <dir>{reset}       -- Copies {green}<file>{reset} to {green}<dir> {gold}[pathlib]{reset}
 username {green}<str>{reset}          -- Sets a new username {gold}[configparser]{reset}
 password {green}<str>{reset}          -- Sets a new password {gold}[configparser]{reset}

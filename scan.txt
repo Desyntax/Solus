@@ -1,2 +1,2 @@
-{gold}Hello!{reset} This file exists to test the {underl}scan{reset} functionality!
-{underl}This{reset} is now on a {green}new line.{reset} If it appears that way for you, then it's {rainbow}{reset}!
+{gold}Hello!{reset} This file exists to test the {underl}scan{reset} command.
+{underl}This{reset} is now on a {green}new line.{reset} If it appears that way for you, then it's working!

@@ -18,7 +18,8 @@ class ExceptionHandler:
             TypeError: "Incorrect data type.",
             ValueError: "The value provided is invalid.",
             IndexError: "Invalid number of arguments.",
-            PermissionError: "Solus doesn't have permission to perform this task."}
+            PermissionError: "Solus doesn't have permission to perform this task.",
+            RecursionError: "Performed the same operation 1,000 times."}
         self.warnings = {
             UnicodeWarning: "Unicode conversion to ASCII attempted.",
             ResourceWarning: "System resources nearing limits.",

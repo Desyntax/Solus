@@ -1,0 +1,20 @@
+Style map for creating fancy-looking text with the scan command.
+
+Available ANSI escape codes:
+reset:  "\x1b[0m"  # Resets all style formatting
+red:    "\x1b[91m"
+gold:   "\x1b[93m"
+green:  "\x1b[92m"
+blue:   "\x1b[96m"
+pink:   "\x1b[95m"
+underl: "\x1b[4m"  # Underline
+bold:   "\x1b[1m"
+hide:   "\x1b[8m"  # Hides text, sometimes visible when highlighted
+dim:    "\x1b[2m"  # Reduces text opacity
+italic: "\x1b[3m"
+
+How it works:
+With curly brackets, write the given name of the ANSI escape code within, such as {red}.
+All following text becomes red until either combined with another escape code like {underl} or reset with {reset}.
+Make sure you end your file with {reset} otherwise the style the file ends with will carry on through into Solus.
+{blue}{underl}{bold}{dim}{italic}You can get really wacky with the escape codes.{reset}
