@@ -1,4 +1,4 @@
-# SOLUS by DESYNTAX - VERSION indev_4 - CREATED 24/02/26 - LAST UPDATED 16/03/26
+# SOLUS by DESYNTAX - VERSION v0.1.0 - CREATED 24/02/26 - LAST UPDATED 16/03/26
 print("Starting CLI...")
 dangerousProceed = ""
 sty = {
@@ -83,7 +83,7 @@ except Exception:
         'password': 'pass',
         'solusname': 'Solus',
         'login': True}
-        version = 'indev_4.4'
+        version = 'unknown'
         print(f"{sty['green']}Created temporary guest account.{sty['reset']}")
     else:
         Path.touch("config.txt")
@@ -92,7 +92,7 @@ except Exception:
             'password': 'pass',
             'solusname': 'Solus',
             'login': 'True',
-            'version': 'indev_4.4'}
+            'version': 'unknown'}
         with open('config.txt', 'w') as file:
             config.write(file)
         solus_info = {
