@@ -83,7 +83,7 @@ except Exception:
         'password': 'pass',
         'solusname': 'Solus',
         'login': True}
-        version = 'indev_4.4'
+        version = 'unknown'
         print(f"{sty['green']}Created temporary guest account.{sty['reset']}")
     else:
         Path.touch("config.txt")
@@ -92,7 +92,7 @@ except Exception:
             'password': 'pass',
             'solusname': 'Solus',
             'login': 'True',
-            'version': 'indev_4.4'}
+            'version': 'unknown'}
         with open('config.txt', 'w') as file:
             config.write(file)
         solus_info = {
