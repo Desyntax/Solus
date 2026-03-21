@@ -1,4 +1,4 @@
-Solus command line interface, build indev_4. Open-sourced project.
+Solus command line interface, version 0.1.0 Alpha. Open-sourced project.
 Command format:
 command {green}<necessary_args> {blue}[;optional_args]{reset} -- Description {gold}[modules_required]{reset}
 Interpreter format:

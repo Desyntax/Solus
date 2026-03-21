@@ -1,0 +1,14 @@
+Solus {blue}FTP{reset} CLI, version ftp_1. Open-sourced project.
+Command format:
+command {green}<necessary_args>{reset} -- Description
+
+help                    -- Displays this help message
+exit                    -- Aborts the FTP connection and returns to Solus
+cwd {green}<dir>{reset}               -- Changes working directory at the server
+ls                      -- Lists nodes at CWD in the server
+copy {green}<data> <file>{reset}      -- Reads binary data from {green}<data>{reset} at the server and writes it into {green}<file>{reset} locally
+cmd {green}<cmd>{reset}               -- Sends {green}<cmd>{reset} (FTP command) to the server and prints result
+
+Run 'cmd help' to get a list of FTP commands.
+
+All arguments are case-sensitive.

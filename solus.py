@@ -20,7 +20,7 @@ sty = {
 
 # imports
 try:
-    import time, os, sys, shutil, stat, errors
+    import time, os, sys, shutil, stat, errors, ftplib
     from pathlib import Path
     import configparser as cfgparser
     import multiprocessing as mp
@@ -32,6 +32,7 @@ sys             -- {sty['blue']}optional{sty['reset']}
 stat            -- {sty['blue']}optional{sty['reset']}
 time            -- {sty['gold']}in commands{sty['reset']}
 errors (local)  -- {sty['red']}necessary{sty['reset']}
+ftplib          -- {sty['gold']}in commands{sty['reset']}
 shutil          -- {sty['gold']}in commands{sty['reset']}
 pathlib         -- {sty['gold']}in commands{sty['reset']}
 configparser    -- {sty['blue']}optional{sty['reset']} {sty['dim']}(as cfgparser){sty['reset']}
@@ -276,6 +277,48 @@ def load(msg):
         time.sleep(0.5)
         print(f"{sty['mcu']}{sty['dll']}[\\] {msg}...")
         time.sleep(0.5)
+@errors.ExceptionHandler()
+def ftpmode():
+    global ftpmain
+    while True:
+        ftpcmd = input(f"{sty['red']}ftp{sty['green']}@{sty['blue']}{ftpmain.host}{sty['reset']}> ")
+        if ftpcmd == "help":
+            file = open(f"{cwd}{dirSep}ftp_help.txt", "r")
+            ftphelp = file.read()
+            ftphelp = ftphelp.format_map(sty)
+            print(ftphelp)
+            file.close()
+            del ftphelp
+        elif ftpcmd == "exit":
+            ftpmain.close()
+            break
+        elif ftpcmd == "ls":
+            ftpmain.retrlines("LIST")
+        elif ftpcmd.startswith("copy"):
+            try:
+                cmdsplit = ftpcmd.split(maxsplit=3)
+                Path.touch(cmdsplit[2])
+                with open(cmdsplit[2], 'wb') as copy:
+                    ftpmain.retrbinary(f'RETR {cmdsplit[1]}', copy.write)
+                print(f"{sty['green']}Successfully copied '{cmdsplit[1]}' to '{cmdsplit[2]}'.{sty['reset']}")
+            except Exception as e:
+                print(f"{sty['red']}[Error]{sty['reset']} {e}")
+        elif ftpcmd.startswith("cwd"):
+            try:
+                cmdsplit = ftpcmd.split(maxsplit=2)
+                ftpmain.cwd(cmdsplit[1])
+                print(f"{sty['green']}Now in '{cmdsplit[1]}'.{sty['reset']}")
+            except Exception as e:
+                print(f"{sty['red']}[Error]{sty['reset']} {e}")
+        elif ftpcmd.startswith("cmd"):
+            try:
+                cmdsplit = ftpcmd.split(maxsplit=2)
+                print(ftpmain.sendcmd(cmdsplit[1]))
+            except Exception as e:
+                print(f"{sty['red']}[Error]{sty['reset']} {e}")
+        else:
+            print(f"{sty['red']}'{ftpcmd}' is not a valid FTP operation.{sty['reset']}")
+
 print(f"{sty['green']}[Info]{sty['reset']} Loaded definitions.")
 
 # initialise
@@ -287,6 +330,7 @@ if __name__ == "__main__":
         print(f"{sty['blue']}[OS]{sty['reset']} Found {sty['blue']}{os.cpu_count()}{sty['reset']} CPU threads.")
         try:
             print(f"{sty['blue']}[OS]{sty['reset']} Solus occupies {sty['blue']}{os.path.getsize(f'{cwd}{dirSep}solus.py'):,d}{sty['reset']} bytes of disk space.")
+            print(f"{sty['blue']}[OS]{sty['reset']} Solus directory size: {sty['blue']}{getdirsize(cwd):,d}{sty['reset']} bytes of disk space.")
         except FileNotFoundError:
             print(f"{sty['gold']}[Warn]{sty['reset']} Solus couldn't locate itself to record its disk usage. Proceeding anyway...")
         bootEnd = time.perf_counter()
@@ -514,14 +558,32 @@ if __name__ == "__main__":
                 elif log[1] == "false" or log[1] == "n":
                     config['SOLUS_INFO']['login'] = "False"
                     print(f"{sty['green']}Toggled login prompt off.{sty['reset']}")
+                del log
             else:
                 print(f"{sty['red']}'login' takes at least one argument, <bool>.{sty['reset']}")
         elif command.startswith("home"): # home
-            if command.startswith("home "):
-                print(f"{sty['red']}'home' takes zero arguments.{sty['reset']}")
-            else:
-                cwd = __file__.removesuffix(f"{dirSep}solus.py")
-                print(f"{sty['green']}Changed working directory to '{cwd}'.{sty['reset']}")
+            cwd = __file__.removesuffix(f"{dirSep}solus.py")
+            print(f"{sty['green']}Changed working directory to '{cwd}'.{sty['reset']}")
+        elif command.startswith("ftp"): # ftp
+            server = command.split(maxsplit=2)
+            try:
+                print(f"Connecting to '{server[1]}'...")
+                ftpUser = input("ftp:USERNAME> ")
+                ftpPass = input(f"ftp:PASSWORD> {sty['hide']}")
+                print(sty['reset'], end="")
+                task = mp.Process(target=load, args=("Connecting",))
+                task.start()
+                ftpmain = ftplib.FTP(host=server[1], user=ftpUser, passwd=ftpPass)
+                ftplib.FTP.login(ftpmain)
+                task.terminate()
+                print(sty['mcu'], sty['dll'], end="", sep="")
+                print(f"{sty['green']}Logged in at '{server[1]}'.{sty['reset']}")
+                print(f"Server message:\n{ftplib.FTP.getwelcome(ftpmain)}")
+                ftpmode()
+            except Exception as e:
+                task.terminate()
+                print(sty['mcu'], sty['dll'], end="", sep="")
+                print(f"{sty['red']}[Error]{sty['reset']} {e}")
         else:
             print(f"{sty['red']}'{command}' not a recognised command. Use 'help' to view a list of commands.{sty['reset']}")
         if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
