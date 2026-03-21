@@ -12,4 +12,4 @@ KNOWN ISSUES:
 * `ls` in certain directories like root (/) does not list all directories (FIXED)
 * `login` keyword in `config.txt` doesn't do anything
 
-Solus indev_4, open-sourced project. All content, including code, falls under public domain.
+Solus indev_4.4, open-sourced project. All content, including code, falls under public domain.
