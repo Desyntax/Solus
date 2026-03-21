@@ -9,6 +9,7 @@ KNOWN ISSUES:
 * `nano` in OVERWRITE mode fails to overwrite the file contents, instead appends
 * `scan` with `;m` attribute does not properly stylise {rainbow} content
 * `sign` on very large directories fails to calculate size
-* `ls` in certain directories like root (/) does not list all directories
+* `ls` in certain directories like root (/) does not list all directories (FIXED)
+* `login` keyword in `config.txt` doesn't do anything
 
 Solus indev_4, open-sourced project. All content, including code, falls under public domain.

@@ -20,28 +20,30 @@ sty = {
 
 # imports
 try:
-    import time, os, sys, shutil, configparser, stat, errors
+    import time, os, sys, shutil, stat, errors
     from pathlib import Path
+    import configparser as cfgparser
     import multiprocessing as mp
 except ModuleNotFoundError:
-    print(f"""{sty['red']}[Error] Solus has run into an error and cannot import certain necessary modules. Please ensure you have the following:{sty['reset']}
+    print(f"""{sty['red']}[Error]{sty['reset']} Solus failed to import certain modules. Please ensure you have the following:
 
 os              -- {sty['gold']}in commands{sty['reset']}
 sys             -- {sty['blue']}optional{sty['reset']}
-time            -- {sty['blue']}optional{sty['reset']}
-stat            -- {sty['gold']}in commands{sty['reset']}
+stat            -- {sty['blue']}optional{sty['reset']}
+time            -- {sty['gold']}in commands{sty['reset']}
 errors (local)  -- {sty['red']}necessary{sty['reset']}
 shutil          -- {sty['gold']}in commands{sty['reset']}
 pathlib         -- {sty['gold']}in commands{sty['reset']}
-configparser    -- {sty['blue']}optional{sty['reset']}
-multiprocessing -- {sty['gold']}in commands{sty['reset']}
+configparser    -- {sty['blue']}optional{sty['reset']} {sty['dim']}(as cfgparser){sty['reset']}
+multiprocessing -- {sty['gold']}in commands{sty['reset']} {sty['dim']}(as mp){sty['reset']}
 
 where:
 {sty['blue']}optional{sty['reset']}        -- used to assess OS or fetch config
 {sty['gold']}in commands{sty['reset']}     -- necessary to perform some commands
-{sty['red']}necessary{sty['reset']}       -- handles important functions like error handling
+{sty['red']}necessary{sty['reset']}       -- handles important tasks like error handling
 
 On your machine's command line, run 'pip install <module>'.
+Additionally, consider updating Python to 3.12.1 or later.
 You might be able to run Solus without these modules imported, but functionality could be severely limited.
 Proceed? {sty['underl']}(y/N){sty['reset']}""")
     dangerousProceed = input("> ")
@@ -64,7 +66,7 @@ print(f"{sty['green']}[Info]{sty['reset']} Loaded necessary modules.")
 
 # config
 try:
-    config = configparser.ConfigParser()
+    config = cfgparser.ConfigParser()
     config.read("config.txt")
     solus_info = {
         "username": config['SOLUS_INFO']['username'],
@@ -72,32 +74,37 @@ try:
         "solusname": config['SOLUS_INFO']['solusname'],
         "login": config['SOLUS_INFO']['login']}
     version = config['SOLUS_INFO']['version']
-except KeyError:
-    print(f"{sty['red']}Error loading configuration file. Would you like to create it?{sty['reset']} (Y/n)")
+except Exception:
+    print(f"{sty['red']}[Error]{sty['reset']} Failed to load configuration file. Would you like to create it? (Y/n)")
     choice = input("> ").casefold()
     if choice == "n":
-        print("Aborted.")
-        exit()
+        solus_info = {
+        'username': 'guest',
+        'password': 'pass',
+        'solusname': 'Solus',
+        'login': True}
+        version = 'indev_4'
+        print(f"{sty['green']}Created temporary guest account.{sty['reset']}")
     else:
         Path.touch("config.txt")
         config['SOLUS_INFO'] = {
             'username': 'guest',
-            'password': 'password',
+            'password': 'pass',
             'solusname': 'Solus',
             'login': 'True',
             'version': 'indev_4'}
         with open('config.txt', 'w') as file:
             config.write(file)
-    config.read("config.txt")
-    solus_info = {
+        solus_info = {
         "username": config['SOLUS_INFO']['username'],
         "password": config['SOLUS_INFO']['password'],
         "solusname": config['SOLUS_INFO']['solusname'],
         "login": config['SOLUS_INFO']['login']}
-    version = config['SOLUS_INFO']['version']
-    print(f"{sty['green']}[Info]{sty['reset']} Created configuration file.")
-    print("Username: 'guest'; password: 'password'.")
-print(f"{sty['green']}[Info]{sty['reset']} Loaded configuration file.")
+        version = config['SOLUS_INFO']['version']
+        print(f"{sty['green']}[Info]{sty['reset']} Created configuration file.")
+        config.read("config.txt")
+    print("Username: 'guest'; password: 'pass'.")
+print(f"{sty['green']}[Info]{sty['reset']} Loaded configuration.")
 
 # variables
 welcomeMessage = f"Solus CLI {version}, created by Desyntax on 24/02/2026."
@@ -175,7 +182,7 @@ def sty_rainbow(text):
     result += sty["reset"]
     return result
 @errors.ExceptionHandler()
-def ls(main, name, size):
+def ls(main, hidden):
     global os, cwd, sty, dirSep
     allinpath = {}
     startTime = time.perf_counter()
@@ -187,13 +194,19 @@ def ls(main, name, size):
         full_path = os.path.join(cwd, node)
         try:
             if os.path.isfile(full_path):
-                total_size = os.path.getsize(full_path)
-                allinpath[node] = (total_size, "f")
+                if node.startswith(".") and hidden == False:
+                    allinpath[node] = (0, "h")
+                else:
+                    total_size = os.path.getsize(full_path)
+                    allinpath[node] = (total_size, "f")
             elif os.path.isdir(full_path) and cwd == "/" and node == "proc":
                 allinpath[node] = (0, "p")
             elif os.path.isdir(full_path):
-                total_size = getdirsize(full_path)
-                allinpath[node] = (total_size, "d")
+                if node.startswith(".") and hidden == False:
+                    allinpath[node] = (0, "h")
+                else:
+                    total_size = getdirsize(full_path)
+                    allinpath[node] = (total_size, "d")
             else:
                 allinpath[node] = (0, "f")
         except Exception:
@@ -202,7 +215,7 @@ def ls(main, name, size):
         allinpath['proc'] = (0, "p")
     task.terminate()
     print(sty['mcu'], sty['dll'], end="")
-    print(f"{sty['blue']}{name:<20} {sty['green']}{size:>12}{sty['reset']}")
+    print(f"{sty['blue']}{"Name":<20} {sty['green']}{"Size":>11}{sty['reset']}")
     print("=" * 33)
     for row in main:
         filesize, nodetype = allinpath[row]
@@ -227,6 +240,8 @@ def ls(main, name, size):
             print(f"{sty['green']}{row:<20}{sty['reset']} {filesize:>10,}{fsm}")
         elif nodetype == "p":
             print(f"{sty['pink']}{row:<20}{sty['reset']} {"N/A":>12}")
+        elif nodetype == "h":
+            pass
         else:
             print(f"{sty['reset']}{row:<20} {filesize:>10,}{fsm}")
     endTime = time.perf_counter()
@@ -282,7 +297,7 @@ if __name__ == "__main__":
         print(f"{sty['gold']}[Warn]{sty['reset']} Skipped checking OS due to missing modules.")
     print(f"{sty['green']}[Info]{sty['reset']} No fatal errors encountered during boot.", end="\n\n")
     print(welcomeMessage, end="\n\n")
-    if config['SOLUS_INFO']['login'] == "True":
+    if solus_info['login'] == "True":
         login()
 
     while True:
@@ -301,10 +316,10 @@ if __name__ == "__main__":
                 except FileNotFoundError:
                     print(f"{sty['red']}'help.txt' was not found. Are you in Solus' directory?{sty['reset']}")
                 except Exception as e:
-                    print(f"{sty['red']}Error: {e}{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['red']} {e}")
         elif command == "logout": # logout
             print("You have successfully logged out.")
-            if config['SOLUS_INFO']['login'] == "True":
+            if solus_info['login'] == "True":
                 login()
             else:
                 exit()
@@ -363,7 +378,7 @@ if __name__ == "__main__":
                     except Exception:
                         write("w")
                 except Exception as e:
-                    print(f"{sty['red']}Error: {e}{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['red']} {e}")
             else:
                 print(f"{sty['red']}'nano' takes at least one argument, <file>.{sty['reset']}")
         elif command.startswith("info"): # info
@@ -376,7 +391,7 @@ if __name__ == "__main__":
             except FileNotFoundError:
                 print(f"{sty['red']}'info.txt' was not found. Are you in Solus' directory?{sty['reset']}")
             except Exception as e:
-                print(f"{sty['red']}Error: {e}{sty['reset']}")
+                print(f"{sty['red']}[Error]{sty['red']} {e}")
         elif command.startswith("rep"): # rep
             if command.startswith("rep "):
                 try:
@@ -388,25 +403,32 @@ if __name__ == "__main__":
                     print(f"Successfully modified '{rep[1]}' to '{rep[2]}'.")
                     del rep
                 except Exception as e:
-                    print(f"{sty['red']}Error: {e}{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['red']} {e}")
             else:
                 print("{sty['red']}'rep' takes at least two arguments, <file> and <str/dir>.{sty['reset']}")
         elif command.startswith("ls"): # ls
             if command.startswith("ls "):
-                print(f"{sty['red']}'ls' takes zero arguments.{sty['reset']}")
+                cmd = command.split(maxsplit=2)
+                if cmd[1] == ";h":
+                    print(f"{sty['green']}All in '{cwd}': {sty['reset']}")
+                    ls(os.listdir(cwd), True)
+                del cmd
             else:
                 print(f"{sty['green']}All in '{cwd}':{sty['reset']}")
-                ls(os.listdir(cwd), "Name", "Size")
+                ls(os.listdir(cwd), False)
         elif command.startswith("cwd"):  # cwd
             if command.startswith("cwd "):
                 try:
                     new_dir = command.removeprefix("cwd ")
-                    os.chdir(new_dir)
-                    cwd = os.getcwd()
-                    print(f"{sty['green']}Changed directory to '{cwd}'{sty['reset']}")
+                    if new_dir == "proc" or new_dir == "/proc" and os.path.realpath(new_dir) == "/proc":
+                        print(f"{sty['red']}[Error]{sty['reset']} 'proc' is not accessible due to its pseudo-directory nature.")
+                    else:
+                        os.chdir(new_dir)
+                        cwd = os.getcwd()
+                        print(f"{sty['green']}Changed directory to '{cwd}'{sty['reset']}")
                     del new_dir
                 except Exception as e:
-                    print(f"{sty['red']}Error: {e}{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['reset']} {e}")
             else:
                 print(f"{sty['red']}'cwd' takes at least one argument, <dir>.{sty['reset']}")
         elif command.startswith("copyright"): # copyright
@@ -424,11 +446,11 @@ if __name__ == "__main__":
                             shutil.rmtree(command.removeprefix('boom '))
                             print(f"Successfully removed '{command.removeprefix('boom ')}'")
                         except Exception as e:
-                            print(f"{sty['red']}Error: {e}{sty['reset']}")
+                            print(f"{sty['red']}[Error]{sty['red']} {e}")
                     else:
                         print("Aborted.")
                 except Exception as e:
-                    print(f"{sty['red']}Error: {e}{sty['red']}")
+                    print(f"{sty['red']}[Error]{sty['red']} {e}")
             else:
                 print(f"{sty['red']}'boom' takes at least one argument, <file>.{sty['reset']}")
         elif command.startswith("kin"): # kin
@@ -437,7 +459,7 @@ if __name__ == "__main__":
                     os.mkdir(command.removeprefix("kin "))
                     print(f"Created directory '{command.removeprefix('kin ')}' in '{cwd}'.")
                 except Exception as e:
-                    print(f"{sty['red']}Error: {e}{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['reset']} {e}")
             else:
                 print(f"{sty['red']}'kin' takes at least one argument, <dir>.{sty['reset']}")
         elif command.startswith("touch"): # touch
@@ -446,11 +468,11 @@ if __name__ == "__main__":
                     Path(f"{command.removeprefix('touch ')}").touch()
                     print(f"Sucessfully created '{command.removeprefix('touch ')}' at '{cwd}'")
                 except FileExistsError:
-                    print(f"{sty['red']}'{command.removeprefix('touch ')}' already exists in '{cwd}'.{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['reset']}'{command.removeprefix('touch ')}' already exists in '{cwd}'.")
                 except PermissionError:
-                    print(f"{sty['red']}Solus doesn't have the necessary permissions to perform this.{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['reset']} Solus doesn't have the necessary permissions to perform this.")
                 except Exception as e:
-                    print(f"{sty['red']}Error: {e}{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['reset']} {e}")
             else:
                 print(f"{sty['red']}'touch' takes at least one argument, <file>.{sty['reset']}")
         elif command.startswith("copy"): # copy
@@ -461,7 +483,7 @@ if __name__ == "__main__":
                     print(f"Successfully copied '{copy[1]}' to '{copy[2]}'.")
                     del copy
                 except Exception as e:
-                    print(f"{sty['red']}Error: {e}{sty['reset']}")
+                    print(f"{sty['red']}[Error]{sty['reset']} {e}")
             else:
                 print(f"{sty['red']}'copy' takes at least two arguments, <file> and <dir>.{sty['reset']}")
         elif command.startswith("exit"): # exit
@@ -481,15 +503,17 @@ if __name__ == "__main__":
                 print(f"Permissions: {stat.filemode(meta.st_mode)}")
                 del meta, sign
             except Exception as e:
-                print(f"{sty['red']}Error: {e}{sty['reset']}")
+                print(f"{sty['red']}[Error]{sty['reset']} {e}")
         elif command.startswith("login"): # login
             if command.startswith("login "):
                 log = command.split(maxsplit=2)
                 log[1] = log[1].casefold()
                 if log[1] == "true" or log[1] == "y":
                     config['SOLUS_INFO']['login'] = "True"
+                    print(f"{sty['green']}Toggled login prompt on.{sty['reset']}")
                 elif log[1] == "false" or log[1] == "n":
                     config['SOLUS_INFO']['login'] = "False"
+                    print(f"{sty['green']}Toggled login prompt off.{sty['reset']}")
             else:
                 print(f"{sty['red']}'login' takes at least one argument, <bool>.{sty['reset']}")
         elif command.startswith("home"): # home

@@ -8,7 +8,7 @@ help {blue}[cmd]{reset}              -- Displays this help message
 logout                  -- Logs out of Solus
 exit                    -- Logs out of Solus and kills the CLI
 output {green}<str>{reset}            -- Prints {green}<str>{reset} to the screen
-ls {blue}[;h]{reset}                 -- Prints nodes in CWD to the screen {gold}[os, time]{reset}
+ls {blue}[;h]{reset}                 -- Prints nodes in CWD to the screen {gold}[os, time, mp]{reset}
 cwd {green}<dir>{reset}               -- Changes current working directory to {green}<dir> {gold}[os]{reset}
 home                    -- Changes CWD to where Solus resides {gold}[os]{reset}
 scan {green}<file> {blue}[;m]{reset}        -- Prints text from {green}<file>{reset} and styles it if {blue}[;m]{reset}
@@ -19,10 +19,10 @@ sign {green}<file>{reset}             -- Returns metadata from {green}<file>{res
 boom {green}<file>{reset}             -- Deletes {green}<file>{reset} from current directory {gold}[shutil, os]{reset}
 rep {green}<file> <node>{reset}       -- Renames or moves {green}<file>{reset} to {green}<node>{reset} {gold}[os]{reset}
 copy {green}<file> <dir>{reset}       -- Copies {green}<file>{reset} to {green}<dir> {gold}[pathlib]{reset}
-username {green}<str>{reset}          -- Sets a new username {gold}[configparser]{reset}
-password {green}<str>{reset}          -- Sets a new password {gold}[configparser]{reset}
-login {green}<bool>{reset}            -- Toggles login prompt; default={green}True{reset} {gold}[configparser]{reset}
-solusname {green}<str>{reset}         -- Sets a new name for Solus {gold}[configparser]{reset}
+username {green}<str>{reset}          -- Sets a new username {gold}[cfgparser]{reset}
+password {green}<str>{reset}          -- Sets a new password {gold}[cfgparser]{reset}
+login {green}<bool>{reset}            -- Toggles login prompt; default={green}True{reset} {gold}[cfgparser]{reset}
+solusname {green}<str>{reset}         -- Sets a new name for Solus {gold}[cfgparser]{reset}
 info                    -- Prints information about Solus
 copyright               -- Prints copyright information about Solus
 
