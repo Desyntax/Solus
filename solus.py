@@ -83,7 +83,7 @@ except Exception:
         'password': 'pass',
         'solusname': 'Solus',
         'login': True}
-        version = 'indev_4'
+        version = 'indev_4.4'
         print(f"{sty['green']}Created temporary guest account.{sty['reset']}")
     else:
         Path.touch("config.txt")
@@ -92,7 +92,7 @@ except Exception:
             'password': 'pass',
             'solusname': 'Solus',
             'login': 'True',
-            'version': 'indev_4'}
+            'version': 'indev_4.4'}
         with open('config.txt', 'w') as file:
             config.write(file)
         solus_info = {
@@ -109,7 +109,7 @@ print(f"{sty['green']}[Info]{sty['reset']} Loaded configuration.")
 # variables
 welcomeMessage = f"Solus CLI {version}, created by Desyntax on 24/02/2026."
 dirsym = "$"
-copyr = f"Solus {version}, created by Desyntax. All content, including source code, are public domain."
+legal = f"Solus {version}, created by Desyntax. All content, including source code, are public domain."
 print(f"{sty['green']}[Info]{sty['reset']} Loaded variables.")
 
 # definitions
@@ -431,8 +431,8 @@ if __name__ == "__main__":
                     print(f"{sty['red']}[Error]{sty['reset']} {e}")
             else:
                 print(f"{sty['red']}'cwd' takes at least one argument, <dir>.{sty['reset']}")
-        elif command.startswith("copyright"): # copyright
-            print(copyr)
+        elif command.startswith("license"): # license
+            print(legal)
         elif command.startswith("boom"): # boom
             if command.startswith("boom "):
                 try:

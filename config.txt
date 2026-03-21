@@ -1,6 +1,6 @@
 [SOLUS_INFO]
 username = desyntax
-password = 
+password = password
 solusname = Solus
 login = True
-version = indev_4
+version = indev_4.4

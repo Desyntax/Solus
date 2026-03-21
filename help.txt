@@ -23,8 +23,8 @@ username {green}<str>{reset}          -- Sets a new username {gold}[cfgparser]{r
 password {green}<str>{reset}          -- Sets a new password {gold}[cfgparser]{reset}
 login {green}<bool>{reset}            -- Toggles login prompt; default={green}True{reset} {gold}[cfgparser]{reset}
 solusname {green}<str>{reset}         -- Sets a new name for Solus {gold}[cfgparser]{reset}
-info                    -- Prints information about Solus
-copyright               -- Prints copyright information about Solus
+info                    -- Prints general information about Solus
+license                 -- Prints license information about Solus
 
 All arguments are case-sensitive.
 
