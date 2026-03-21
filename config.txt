@@ -1,6 +1,6 @@
 [SOLUS_INFO]
 username = desyntax
-password = 
+password = password
 solusname = Solus
 login = True
 version = v0.1.0
