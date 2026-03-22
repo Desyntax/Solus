@@ -1,4 +1,5 @@
-# SOLUS by DESYNTAX - VERSION v0.1.1 - CREATED 24/02/26 - LAST UPDATED 16/03/26
+# SOLUS by DESYNTAX - VERSION v0.1.1 - CREATED 24/02/26 - LAST UPDATED 22/03/26
+# This is for POSIX-compliant machines only.
 print("Starting CLI...")
 dangerousProceed = ""
 sty = {
@@ -43,8 +44,8 @@ where:
 {sty['gold']}in commands{sty['reset']}     -- necessary to perform some commands
 {sty['red']}necessary{sty['reset']}       -- handles important tasks like error handling
 
-On your machine's command line, run 'pip install <module>'.
-Additionally, consider updating Python to 3.12.1 or later.
+On the terminal, run 'pip install <module>'.
+Additionally, consider updating Python to 3.14.3 or later.
 You might be able to run Solus without these modules imported, but functionality could be severely limited.
 Proceed? {sty['underl']}(y/N){sty['reset']}""")
     dangerousProceed = input("> ")
@@ -184,7 +185,7 @@ def sty_rainbow(text):
     return result
 @errors.ExceptionHandler()
 def ls(main, hidden):
-    global os, cwd, sty, dirSep
+    global os, cwd, sty
     allinpath = {}
     startTime = time.perf_counter()
     total_size = 0
@@ -281,7 +282,7 @@ def load(msg):
 def ftpmode():
     global ftpmain
     while True:
-        ftpcmd = input(f"{sty['red']}ftp{sty['green']}@{sty['blue']}{ftpmain.host}{sty['reset']}> ")
+        ftpcmd = input(f"{sty['red']}FTP{sty['green']}@{sty['blue']}{ftpmain.host}{sty['reset']}> ")
         if ftpcmd == "help": # ftp:help
             file = open(os.path.join(__file__.removesuffix("solus.py"), "ftp_help.txt"), "r")
             ftphelp = file.read()
@@ -290,6 +291,7 @@ def ftpmode():
             file.close()
             del ftphelp
         elif ftpcmd == "exit": # ftp:exit
+            print(f"{sty['blue']}[FTP]{sty['reset']} Exit.")
             del cmdsplit
             ftpmain.close()
             break
@@ -339,11 +341,10 @@ print(f"{sty['green']}[Info]{sty['reset']} Loaded definitions.")
 if __name__ == "__main__":
     if dangerousProceed != "y":
         print(f"{sty['blue']}[OS]{sty['reset']} Solus is running on a {sty['blue']}{sys.platform}{sty['reset']} system.")
-        dirSep = os.sep
-        cwd = __file__.removesuffix(f"{dirSep}solus.py")
+        cwd = __file__.removesuffix(f"/solus.py")
         print(f"{sty['blue']}[OS]{sty['reset']} Found {sty['blue']}{os.cpu_count()}{sty['reset']} CPU threads.")
         try:
-            print(f"{sty['blue']}[OS]{sty['reset']} Solus occupies {sty['blue']}{os.path.getsize(f'{cwd}{dirSep}solus.py'):,d}{sty['reset']} bytes of disk space.")
+            print(f"{sty['blue']}[OS]{sty['reset']} Solus occupies {sty['blue']}{os.path.getsize(f'{cwd}/solus.py'):,d}{sty['reset']} bytes of disk space.")
             print(f"{sty['blue']}[OS]{sty['reset']} Solus directory size: {sty['blue']}{getdirsize(cwd):,d}{sty['reset']} bytes of disk space.")
         except FileNotFoundError:
             print(f"{sty['gold']}[Warn]{sty['reset']} Solus couldn't locate itself to record its disk usage. Proceeding anyway...")
@@ -552,7 +553,7 @@ if __name__ == "__main__":
             try:
                 meta = os.stat(sign[1])
                 print(f"{sty['green']}Metadata from '{sign[1]}'{sty['reset']}")
-                print(f"Path: {cwd}{dirSep}{sign[1]}")
+                print(f"Path: {cwd}/{sign[1]}")
                 print(f"Type: {'Directory' if os.path.isdir(sign[1]) else 'File' if os.path.isfile(sign[1]) else 'Other'}")
                 print(f"Last accessed: {time.ctime(meta.st_mtime)}")
                 print(f"Size: {meta.st_size if os.path.isfile(sign[1]) else getdirsize(sign[1]) if os.path.isdir(sign[1]) else 'Unknown'} bytes")
@@ -576,7 +577,7 @@ if __name__ == "__main__":
             else:
                 print(f"{sty['red']}'login' takes at least one argument, <bool>.{sty['reset']}")
         elif command.startswith("home"): # home
-            cwd = __file__.removesuffix(f"{dirSep}solus.py")
+            cwd = __file__.removesuffix(f"/solus.py")
             print(f"{sty['green']}Changed working directory to '{cwd}'.{sty['reset']}")
         elif command.startswith("ftp"): # ftp
             server = command.split(maxsplit=2)
@@ -621,9 +622,9 @@ if __name__ == "__main__":
                 print(f"{sty['red']}'cwdl' takes at least one argument, <dir>.{sty['reset']}")
         else:
             print(f"{sty['red']}'{command}' not a recognised command. Use 'help' to view a list of commands.{sty['reset']}")
-        if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
+        if cwd == __file__.removesuffix(f"/solus.py"):
             dirsym = "$"
-        elif cwd == "/" or cwd == "C:\\":
+        elif cwd == "/":
             dirsym = "/"
         else:
             dirsym = "~"
