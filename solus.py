@@ -1,4 +1,4 @@
-# SOLUS by DESYNTAX - VERSION v0.1.0 - CREATED 24/02/26 - LAST UPDATED 16/03/26
+# SOLUS by DESYNTAX - VERSION v0.1.1 - CREATED 24/02/26 - LAST UPDATED 16/03/26
 print("Starting CLI...")
 dangerousProceed = ""
 sty = {
@@ -248,7 +248,7 @@ def ls(main, hidden):
     endTime = time.perf_counter()
     totalTime = endTime - startTime
     print(f"{sty['dim']}Time taken to resolve: {round(totalTime * 1000, 3) if totalTime < 1 else round(totalTime, 3)} {'milliseconds' if totalTime < 1 else 'seconds'}.{sty['reset']}")
-    del startTime, endTime, totalTime
+    del startTime, endTime, totalTime, nodetype, filesize, allinpath, total_size
 @errors.ExceptionHandler()
 def getdirsize(start_path):
     total_size = 0
@@ -282,35 +282,50 @@ def ftpmode():
     global ftpmain
     while True:
         ftpcmd = input(f"{sty['red']}ftp{sty['green']}@{sty['blue']}{ftpmain.host}{sty['reset']}> ")
-        if ftpcmd == "help":
-            file = open(f"{cwd}{dirSep}ftp_help.txt", "r")
+        if ftpcmd == "help": # ftp:help
+            file = open(os.path.join(__file__.removesuffix("solus.py"), "ftp_help.txt"), "r")
             ftphelp = file.read()
             ftphelp = ftphelp.format_map(sty)
             print(ftphelp)
             file.close()
             del ftphelp
-        elif ftpcmd == "exit":
+        elif ftpcmd == "exit": # ftp:exit
+            del cmdsplit
             ftpmain.close()
             break
-        elif ftpcmd == "ls":
+        elif ftpcmd == "ls": # ftp:ls
             ftpmain.retrlines("LIST")
-        elif ftpcmd.startswith("copy"):
+        elif ftpcmd.startswith("copy"): # ftp:copy
             try:
                 cmdsplit = ftpcmd.split(maxsplit=3)
                 Path.touch(cmdsplit[2])
                 with open(cmdsplit[2], 'wb') as copy:
                     ftpmain.retrbinary(f'RETR {cmdsplit[1]}', copy.write)
-                print(f"{sty['green']}Successfully copied '{cmdsplit[1]}' to '{cmdsplit[2]}'.{sty['reset']}")
+                print(f"{sty['blue']}[FTP]{sty['reset']} Successfully copied '{cmdsplit[1]}' to '{cmdsplit[2]}'.")
             except Exception as e:
                 print(f"{sty['red']}[Error]{sty['reset']} {e}")
-        elif ftpcmd.startswith("cwd"):
+        elif ftpcmd.startswith("cwd "): # ftp:cwd
             try:
                 cmdsplit = ftpcmd.split(maxsplit=2)
                 ftpmain.cwd(cmdsplit[1])
-                print(f"{sty['green']}Now in '{cmdsplit[1]}'.{sty['reset']}")
+                print(f"{sty['blue']}[FTP]{sty['reset']} Changed CWD to '{cmdsplit[1]}'.")
             except Exception as e:
                 print(f"{sty['red']}[Error]{sty['reset']} {e}")
-        elif ftpcmd.startswith("cmd"):
+        elif ftpcmd.startswith("cwdl"): # ftp:cwdl
+            try:
+                cmdsplit = ftpcmd.split(maxsplit=2)
+                ftpmain.cwd(cmdsplit[1])
+                print(f"{sty['blue']}[FTP]{sty['reset']} Changed CWD to '{cmdsplit[1]}'.")
+                ftpmain.retrlines("LIST")
+            except Exception as e:
+                print(f"{sty['red']}[Error]{sty['reset']} {e}")
+        elif ftpcmd.startswith("scan"): # ftp:scan
+            try:
+                cmdsplit = ftpcmd.split(maxsplit=2)
+                print(ftpmain.retrlines(f'RETR {cmdsplit[1]}'))
+            except Exception as e:
+                print(f"{sty['red']}[Error]{sty['reset']} {e}")
+        elif ftpcmd.startswith("cmd"): # ftp:cmd
             try:
                 cmdsplit = ftpcmd.split(maxsplit=2)
                 print(ftpmain.sendcmd(cmdsplit[1]))
@@ -318,7 +333,6 @@ def ftpmode():
                 print(f"{sty['red']}[Error]{sty['reset']} {e}")
         else:
             print(f"{sty['red']}'{ftpcmd}' is not a valid FTP operation.{sty['reset']}")
-
 print(f"{sty['green']}[Info]{sty['reset']} Loaded definitions.")
 
 # initialise
@@ -351,14 +365,14 @@ if __name__ == "__main__":
                 print(helpList.format_map(sty))
             else:
                 try:
-                    file = open(f"{cwd}{dirSep}help.txt", "r")
+                    file = open(os.path.join(__file__.removesuffix("solus.py"), "help.txt"), "r")
                     helpmsg = file.read()
                     helpmsg = helpmsg.format_map(sty)
                     print(helpmsg)
                     file.close()
                     del helpmsg
                 except FileNotFoundError:
-                    print(f"{sty['red']}'help.txt' was not found. Are you in Solus' directory?{sty['reset']}")
+                    print(f"{sty['red']}'help.txt' was not found. Is it in Solus' directory?{sty['reset']}")
                 except Exception as e:
                     print(f"{sty['red']}[Error]{sty['red']} {e}")
         elif command == "logout": # logout
@@ -380,22 +394,22 @@ if __name__ == "__main__":
         elif command.startswith("scan"): # scan
             if command.startswith("scan "):
                 try:
-                    scan = command.split(maxsplit=2)
-                    if scan[2] == ";m":
+                    scan = command.split(maxsplit=3)
+                    if len(scan) == 3 and scan[2] == ";m":
                         if os.path.isabs(scan[1]):
-                            file = open(f"{cwd}{dirSep}{scan[1]}", "r")
+                            file = open(os.path.join(cwd, scan[1]), "r")
                         else:
-                            file = open(scan[1], "r")
+                            file = open(os.path.join(cwd, scan[1]), "r")
                         scan = file.read()
                         scan = scan.format_map(sty)
                         print(scan)
                         file.close()
                     else:
-                        file = open(scan[1])
+                        file = open(os.path.join(cwd, scan[1]))
                         print(file.read())
                         file.close()
                 except IndexError:
-                    file = open(scan[1])
+                    file = open(os.path.join(cwd, scan[1]))
                     print(file.read())
                     file.close()
                 except Exception as e:
@@ -427,13 +441,13 @@ if __name__ == "__main__":
                 print(f"{sty['red']}'nano' takes at least one argument, <file>.{sty['reset']}")
         elif command.startswith("info"): # info
             try:
-                file = open(f"{cwd}{dirSep}info.txt", "r")
+                file = open(os.path.join(__file__.removesuffix("solus.py"), "info.txt"), "r")
                 infomsg = file.read()
-                print(infomsg.format_map(sty))
+                print(infomsg.format_map(sty), end="")
                 file.close()
                 del infomsg
             except FileNotFoundError:
-                print(f"{sty['red']}'info.txt' was not found. Are you in Solus' directory?{sty['reset']}")
+                print(f"{sty['red']}'info.txt' was not found. Is it in Solus' directory?{sty['reset']}")
             except Exception as e:
                 print(f"{sty['red']}[Error]{sty['red']} {e}")
         elif command.startswith("rep"): # rep
@@ -445,7 +459,7 @@ if __name__ == "__main__":
                         dest = os.path.join(dest, os.path.basename(rep[1]))
                     os.rename(rep[1], dest)
                     print(f"Successfully modified '{rep[1]}' to '{rep[2]}'.")
-                    del rep
+                    del rep, dest
                 except Exception as e:
                     print(f"{sty['red']}[Error]{sty['red']} {e}")
             else:
@@ -460,7 +474,7 @@ if __name__ == "__main__":
             else:
                 print(f"{sty['green']}All in '{cwd}':{sty['reset']}")
                 ls(os.listdir(cwd), False)
-        elif command.startswith("cwd"):  # cwd
+        elif command.split()[0] == "cwd":  # cwd
             if command.startswith("cwd "):
                 try:
                     new_dir = command.removeprefix("cwd ")
@@ -584,6 +598,27 @@ if __name__ == "__main__":
                 task.terminate()
                 print(sty['mcu'], sty['dll'], end="", sep="")
                 print(f"{sty['red']}[Error]{sty['reset']} {e}")
+        elif command.startswith("cwdl"):
+            if command.startswith("cwdl "):
+                try:
+                    cmd = command.split(maxsplit=3)
+                    if cmd[1] == "proc" or cmd[1] == "/proc" and os.path.realpath(cmd[1]) == "/proc":
+                        print(f"{sty['red']}[Error]{sty['reset']} 'proc' is not accessible due to its pseudo-directory nature.")
+                    else:
+                        os.chdir(cmd[1])
+                        cwd = os.getcwd()
+                        print(f"{sty['green']}Changed directory to '{cwd}'{sty['reset']}")
+                        print(f"{sty['green']}All in '{cwd}': {sty['reset']}")
+                        try:
+                            if cmd[2] == ";h":
+                                ls(os.listdir(cwd), True)
+                        except Exception:
+                            ls(os.listdir(cwd), False)
+                    del cmd
+                except Exception as e:
+                    print(f"{sty['red']}[Error]{sty['reset']} {e}")
+            else:
+                print(f"{sty['red']}'cwdl' takes at least one argument, <dir>.{sty['reset']}")
         else:
             print(f"{sty['red']}'{command}' not a recognised command. Use 'help' to view a list of commands.{sty['reset']}")
         if cwd == __file__.removesuffix(f"{dirSep}solus.py"):

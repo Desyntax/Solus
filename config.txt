@@ -3,5 +3,4 @@ username = desyntax
 password = 
 solusname = Solus
 login = True
-version = v0.1.0
-
+version = v0.1.1
