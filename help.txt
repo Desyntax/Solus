@@ -3,6 +3,20 @@ Command format:
 command {green}<necessary_args> {blue}[;optional_args]{reset} -- Description {gold}[modules_required]{reset}
 Interpreter format:
 {red}USERNAME{green}@{blue}Solusname{green}(directory){reset}>
+Directory symbols:
+{green}${reset} -- In Solus' directory
+{green}/{reset} -- In root directory
+{green}~{reset} -- Elsewhere
+
+Command format:
+command {green}<necessary_args> {blue}[;optional_args]{reset} -- Description {gold}[modules_required]{reset}
+Necessary arguments:
+{green}<str>{reset}    -- Any string value
+{green}<dir>{reset}    -- Any directory
+{green}<file>{reset}   -- Any file
+{green}<node>{reset}   -- Any file, directory, or symlink
+{green}<bool>{reset}   -- Either True or False
+{green}<serv>{reset}   -- Any server DNS or IPv4 address
 
 help {blue}[cmd]{reset}              -- Displays this help message
 logout                  -- Logs out of Solus
@@ -24,14 +38,10 @@ username {green}<str>{reset}          -- Sets a new username {gold}[cfgparser]{r
 password {green}<str>{reset}          -- Sets a new password {gold}[cfgparser]{reset}
 login {green}<bool>{reset}            -- Toggles login prompt; default={green}True{reset} {gold}[cfgparser]{reset}
 solusname {green}<str>{reset}         -- Sets a new name for Solus {gold}[cfgparser]{reset}
+ftp {green}<serv>{reset}              -- Attempts to connect to {green}<serv>{reset} {gold}[ftplib]{reset}
 info                    -- Prints general information about Solus
 license                 -- Prints license information about Solus
 
 All arguments are case-sensitive.
-
-Directory symbols:
-{green}${reset} -- In Solus' directory
-{green}/{reset} -- In root directory
-{green}~{reset} -- Elsewhere
 
 Use help {blue}[cmd]{reset} to view more details about a command. {dim}(not yet implemented){reset}

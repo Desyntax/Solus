@@ -1,2 +1,2 @@
-{blue}Solus{reset} v0.1.0 Alpha release. Made with {red}<3{reset} from Desyntax.
+{blue}Solus{reset} v0.1.1 Alpha release. Made with {red}<3{reset} from Desyntax.
 Type '{underl}help{reset}' to view a list of commands.
