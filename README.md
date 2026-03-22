@@ -1,3 +1,6 @@
+### This is the POSIX branch.
+#### This branch is optimised to work on POSIX compliant operating systems like Unix and XNU.
+
 INSTRUCTIONS FOR USE:
 1. Install Python 3.12.1 or newer (https://www.python.org/downloads/)
 2. Run `solus.py` in its residing directory. Don't run it from an external directory or it will fail to locate some necessary files
