@@ -151,8 +151,8 @@ def login():
 @errors.ExceptionHandler()
 def write(mode):
     "Does the actual writing part for the nano command. Under construction."
-    """
-    filename = nano[1]
+    global nano
+    filename = nano[0]
     if mode == "w":
         print(f"'{filename}' opened in {sty['blue']}OVERWRITE{sty['reset']} mode")
     else:
@@ -163,8 +163,9 @@ def write(mode):
         content = old_file.read()
     tempfile_name = f".NANO_{filename}"
     Path.touch(tempfile_name)
-    with open(tempfile_name, "w") as tempfile:
-        tempfile.write(content)
+    if mode != "w":
+        with open(tempfile_name, "w") as tempfile:
+            tempfile.write(content)
     while True:
         newline = input()
         if newline == "<close>":
@@ -181,14 +182,13 @@ def write(mode):
             break
         else:
             with open(tempfile_name, "a") as tempfile:
-                tempfile.write(newline + "\n")"""
-    print("Nano is not available at the moment.")
+                tempfile.write(newline + "\n")
 @errors.ExceptionHandler()
 def modifyInfo(part):
     "Modifies the config file and currently loaded information in solus_info."
-    global config, solus_info, command
-    if command.startswith(f"{part} "):
-        newName = command.removeprefix(f"{part} ")
+    global config, solus_info, line
+    if line.startswith(f"{part} "):
+        newName = line.removeprefix(f"{part} ")
         config['SOLUS_INFO'][part] = newName
         if part in solus_info:
             solus_info[part] = newName
@@ -311,7 +311,7 @@ def ftpmode():
     "Enters the FTP command line interpreter."
     global ftpmain
     while True:
-        ftpcmd = input(f"{sty['red']}ftp{sty['green']}@{sty['blue']}{ftpmain.host}{sty['reset']}> ")
+        ftpcmd = input(f"{sty['red']}FTP{sty['green']}@{sty['blue']}{ftpmain.host}{sty['reset']}> ")
         if ftpcmd == "help": # ftp:help
             file = open(os.path.join(__file__.removesuffix("solus.py"), "ftp_help.txt"), "r")
             ftphelp = file.read()
@@ -438,25 +438,26 @@ class SolusMain(cmd.Cmd):
     def do_output(self, arg): # output
         "Prints <str> to the screen, automatically formatted within style boundaries."
         print(arg.format_map(sty))
-    def do_scan(self, *arg): # scan
+    def do_scan(self, *args): # scan
         "Reads text from <file> and prints it to the screen."
         try:
-            if arg[1] == ";m":
-                if os.path.isabs(scan[1]):
-                    file = open(os.path.join(cwd, arg[0]), "r")
+            scan = "".join(args).split(maxsplit=2)
+            if scan[1] == ";m":
+                if os.path.isabs(scan[0]):
+                    file = open(os.path.join(cwd, scan[0]), "r")
                 else:
-                    file = open(os.path.join(cwd, arg[0]), "r")
+                    file = open(os.path.join(cwd, scan[0]), "r")
                 scan = file.read()
                 scan = scan.format_map(sty)
                 print(scan)
                 file.close()
                 del scan
             else:
-                file = open(os.path.join(cwd, arg[0]))
+                file = open(os.path.join(cwd, scan[0]))
                 print(file.read())
                 file.close()
         except IndexError:
-            file = open(os.path.join(cwd, arg[0]))
+            file = open(os.path.join(cwd, scan[0]))
             print(file.read())
             file.close()
         except Exception as e:
@@ -470,19 +471,23 @@ class SolusMain(cmd.Cmd):
     def do_solusname(self, arg): # solusname
         "Modifies the Solus CLI name."
         modifyInfo("solusname")
-    def do_nano(self, arg): # nano
+    def do_nano(self, *args): # nano
         "Appends or overwrites <file>, depending on if ;a is present."
-        nano = command.split(maxsplit=3)
+        global nano
         try:
-            file = open(nano[1])
+            nano = "".join(args).split(maxsplit=2)
+            file = open(nano[0])
             file.close()
             try:
-                if nano[2] == ";a":
+                if nano[1] == ";a":
                     write("a")
                 else:
                     write("w")
             except Exception:
                 write("w")
+        except IndexError:
+            nano = args
+            write("w")
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['red']} {e}")
     def do_info(self, arg): # info
@@ -497,15 +502,15 @@ class SolusMain(cmd.Cmd):
             print(f"{sty['red']}'info.txt' was not found. Is it in Solus' directory?{sty['reset']}")
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['red']} {e}")
-    def do_rep(self, arg): # rep
+    def do_rep(self, *args): # rep
         "Renames or moves <file> to <node>, where <node> is <str> and/or <dir>."
         try:
-            rep = command.split(maxsplit=2)
-            dest = rep[2]
+            rep = "".join(args).split(maxsplit=2)
+            dest = rep[1]
             if os.path.isdir(dest):
-                dest = os.path.join(dest, os.path.basename(rep[1]))
-            os.rename(rep[1], dest)
-            print(f"Successfully modified '{rep[1]}' to '{rep[2]}'.")
+                dest = os.path.join(dest, os.path.basename(rep[0]))
+            os.rename(rep[0], dest)
+            print(f"Successfully modified '{rep[0]}' to '{rep[1]}'.")
             del rep, dest
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['red']} {e}")
@@ -539,15 +544,15 @@ class SolusMain(cmd.Cmd):
     def do_boom(self, arg): # boom
         "Deletes <node> in CWD."
         try:
-            os.remove(command.removeprefix("boom "))
-            print(f"Successfully deleted '{command.removeprefix('boom ')}'.")
+            os.remove(arg)
+            print(f"Successfully deleted '{arg}'.")
         except IsADirectoryError:
-            print(f"{sty['gold']}[Warn]{sty['reset']} '{command.removeprefix('boom ')}' is a directory. Would you like to remove it? (y/N)")
+            print(f"{sty['gold']}[Warn]{sty['reset']} '{arg}' is a directory. Would you like to remove it? (y/N)")
             choice = input("> ").casefold()
             if choice == "y":
                 try:
-                    shutil.rmtree(command.removeprefix('boom '))
-                    print(f"Successfully removed '{command.removeprefix('boom ')}'")
+                    shutil.rmtree(arg)
+                    print(f"Successfully removed '{arg}'")
                 except Exception as e:
                     print(f"{sty['red']}[Error]{sty['red']} {e}")
             else:
@@ -557,27 +562,27 @@ class SolusMain(cmd.Cmd):
     def do_kin(self, arg): # kin
         "Creates a new directory called <str> in CWD."
         try:
-            os.mkdir(command.removeprefix("kin "))
-            print(f"Created directory '{command.removeprefix('kin ')}' in '{cwd}'.")
+            os.mkdir(arg)
+            print(f"Created directory '{arg}' in '{cwd}'.")
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['reset']} {e}")
     def do_touch(self, arg): # touch
         "Creates a new file called <str> in CWD"
         try:
-            Path(f"{command.removeprefix('touch ')}").touch()
-            print(f"Sucessfully created '{command.removeprefix('touch ')}' at '{cwd}'")
+            Path(arg).touch()
+            print(f"Sucessfully created '{arg}' at '{cwd}'")
         except FileExistsError:
-            print(f"{sty['red']}[Error]{sty['reset']}'{command.removeprefix('touch ')}' already exists in '{cwd}'.")
+            print(f"{sty['red']}[Error]{sty['reset']}'{arg}' already exists in '{cwd}'.")
         except PermissionError:
             print(f"{sty['red']}[Error]{sty['reset']} Solus doesn't have the necessary permissions to perform this.")
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['reset']} {e}")
-    def do_copy(self, arg): # copy
+    def do_copy(self, *args): # copy
         "Copies <file> to <dir>."
         try:
-            copy = command.split(maxsplit=2)
-            shutil.copy2(copy[1], copy[2])
-            print(f"Successfully copied '{copy[1]}' to '{copy[2]}'.")
+            copy = "".join(args).split(maxsplit=2)
+            shutil.copy2(copy[0], copy[1])
+            print(f"Successfully copied '{copy[0]}' to '{copy[1]}'.")
             del copy
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['reset']} {e}")
@@ -587,7 +592,7 @@ class SolusMain(cmd.Cmd):
         exit()
     def do_sign(self, arg): # sign
         "Prints information about <node> to the screen."
-        sign = command.split(maxsplit=2)
+        sign = arg
         try:
             meta = os.stat(sign[1])
             print(f"{sty['green']}Metadata from '{sign[1]}'{sty['reset']}")
@@ -603,7 +608,7 @@ class SolusMain(cmd.Cmd):
             print(f"{sty['red']}[Error]{sty['reset']} {e}")
     def do_login(self, arg): # login
         "Modifies the login prompt to <bool>. Does not work at the moment."
-        log = command.split(maxsplit=2)
+        log = arg
         log[1] = log[1].casefold()
         if log[1] == "true" or log[1] == "y":
             config['SOLUS_INFO']['login'] = "True"
@@ -622,8 +627,8 @@ class SolusMain(cmd.Cmd):
         server = arg
         try:
             print(f"Connecting to '{server}'...")
-            ftpUser = input("ftp:USERNAME> ")
-            ftpPass = input(f"ftp:PASSWORD> {sty['hide']}")
+            ftpUser = input("FTP:USERNAME> ")
+            ftpPass = input(f"FTP:PASSWORD> {sty['hide']}")
             print(sty['reset'], end="")
             task = mp.Process(target=load, args=("Connecting",))
             task.start()
