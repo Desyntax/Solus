@@ -1,4 +1,4 @@
-# SOLUS by DESYNTAX - VERSION v0.1.1 - CREATED 24/02/26 - LAST UPDATED 16/03/26
+# SOLUS by DESYNTAX - VERSION v0.1.2 - CREATED 24/02/26 - LAST UPDATED 16/03/26
 print("Starting CLI...")
 dangerousProceed = ""
 sty = {
@@ -128,7 +128,7 @@ except Exception:
 print(f"{sty['green']}[Info]{sty['reset']} Loaded configuration.")
 
 # variables
-welcomeMessage = f"Solus CLI {version}, created by Desyntax on 24/02/2026."
+welcomeMessage = f"Solus CLI version {version}, created by Desyntax on 24/02/2026."
 dirsym = "$"
 legal = f"Solus {version}, created by Desyntax. All content, including source code, are public domain."
 print(f"{sty['green']}[Info]{sty['reset']} Loaded variables.")
@@ -247,22 +247,7 @@ def ls(main, hidden):
     print("=" * 33)
     for row in main:
         filesize, nodetype = allinpath[row]
-        fsm = " B" # file size measurement (bytes, kilobytes, etc)
-        if filesize >= 1024**5:
-            filesize /= 1024**5
-            fsm = "PB"
-        elif filesize >= 1024**4:
-            filesize /= 1024**4
-            fsm = "TB"
-        elif filesize >= 1024**3:
-            filesize /= 1024**3
-            fsm = "GB"
-        elif filesize >= 1024**2:
-            filesize /= 1024**2
-            fsm = "MB"
-        elif filesize >= 1024:
-            filesize /= 1024
-            fsm = "KB"
+        fsm = sizetype(filesize)
         filesize = round(filesize, 2)
         if nodetype == "d":
             print(f"{sty['green']}{row:<20}{sty['reset']} {filesize:>10,}{fsm}")
@@ -276,6 +261,25 @@ def ls(main, hidden):
     totalTime = endTime - startTime
     print(f"{sty['dim']}Time taken to resolve: {round(totalTime * 1000, 3) if totalTime < 1 else round(totalTime, 3)} {'milliseconds' if totalTime < 1 else 'seconds'}.{sty['reset']}")
     del startTime, endTime, totalTime, nodetype, filesize, allinpath, total_size
+@errors.ExceptionHandler()
+def sizetype(node):
+    fsm = " B" # file size measurement (bytes, kilobytes, etc)
+    if node >= 1024**5:
+        node /= 1024**5
+        fsm = "PB"
+    elif node >= 1024**4:
+        node /= 1024**4
+        fsm = "TB"
+    elif node >= 1024**3:
+        node /= 1024**3
+        fsm = "GB"
+    elif node >= 1024**2:
+        node /= 1024**2
+        fsm = "MB"
+    elif node >= 1024:
+        node /= 1024
+        fsm = "KB"
+    return fsm, node
 @errors.ExceptionHandler()
 def getdirsize(start_path):
     "Recursively calculates the total size of a directory by walking through all contents and summing filesizes."
@@ -365,13 +369,18 @@ def ftpmode():
             print(f"{sty['red']}'{ftpcmd}' is not a valid FTP operation.{sty['reset']}")
 @errors.ExceptionHandler()
 def checkdir():
-            global cwd, dirSep, dirsym
-            if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
-                dirsym = "$"
-            elif cwd == "/" or cwd == "C:\\":
-                dirsym = "/"
-            else:
-                dirsym = "~"
+    global cwd, dirSep, dirsym
+    if cwd == __file__.removesuffix(f"{dirSep}solus.py"):
+        dirsym = "$"
+        print("DEBUG: Chose $")
+    elif cwd == "/" or cwd == "C:\\":
+        dirsym = "/"
+        print("DEBUG: Chose /")
+    else:
+        dirsym = "~"
+        print("DEBUG: Chose ~")
+    print("DEBUG: Executed checkdir()")
+    print(f"DEBUG: Set dirsym to {dirsym}")
 @errors.ExceptionHandler()
 def parse(arg):
     "Converts a series of zero or more numbers to an argument tuple."
@@ -405,12 +414,9 @@ def boot():
 
 # solus main commands
 class SolusMain(cmd.Cmd):
-    global cwd, dirSep, dirsym, solus_info, sty
+    global cwd, dirSep, dirsym, solus_info
     intro = boot()
     prompt = f"{sty['red']}{solus_info['username'].upper()}{sty['green']}@{sty['blue']}{solus_info['solusname']}{sty['green']}{dirsym}{sty['reset']}> "
-    
-    def precmd(self, line):
-        return line.casefold()
 
     def do_help(self, arg): # help
         "Returns a list of comamnds and tips."
@@ -510,7 +516,7 @@ class SolusMain(cmd.Cmd):
             if os.path.isdir(dest):
                 dest = os.path.join(dest, os.path.basename(rep[0]))
             os.rename(rep[0], dest)
-            print(f"Successfully modified '{rep[0]}' to '{rep[1]}'.")
+            print(f"{sty['green']}Successfully modified '{rep[0]}' to '{rep[1]}'.{sty['reset']}")
             del rep, dest
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['red']} {e}")
@@ -525,7 +531,7 @@ class SolusMain(cmd.Cmd):
             ls(os.listdir(cwd), False)
     def do_cwd(self, arg):  # cwd
         "Changes current working directory (CWD) to <dir>"
-        global cwd, dirsep, dirsym
+        global cwd, dirsep, dirsym, checkdir
         try:
             new_dir = arg
             if new_dir == "proc" or new_dir == "/proc" and os.path.realpath(new_dir) == "/proc":
@@ -545,14 +551,14 @@ class SolusMain(cmd.Cmd):
         "Deletes <node> in CWD."
         try:
             os.remove(arg)
-            print(f"Successfully deleted '{arg}'.")
+            print(f"{sty['green']}Successfully deleted '{arg}'.{sty['reset']}")
         except IsADirectoryError:
             print(f"{sty['gold']}[Warn]{sty['reset']} '{arg}' is a directory. Would you like to remove it? (y/N)")
             choice = input("> ").casefold()
             if choice == "y":
                 try:
                     shutil.rmtree(arg)
-                    print(f"Successfully removed '{arg}'")
+                    print(f"{sty['green']}Successfully removed '{arg}'.{sty['reset']}")
                 except Exception as e:
                     print(f"{sty['red']}[Error]{sty['red']} {e}")
             else:
@@ -563,14 +569,14 @@ class SolusMain(cmd.Cmd):
         "Creates a new directory called <str> in CWD."
         try:
             os.mkdir(arg)
-            print(f"Created directory '{arg}' in '{cwd}'.")
+            print(f"{sty['green']}Created directory '{arg}' in '{cwd}'.{sty['reset']}")
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['reset']} {e}")
     def do_touch(self, arg): # touch
         "Creates a new file called <str> in CWD"
         try:
             Path(arg).touch()
-            print(f"Sucessfully created '{arg}' at '{cwd}'")
+            print(f"{sty['green']}Sucessfully created '{arg}' at '{cwd}'.{sty['reset']}")
         except FileExistsError:
             print(f"{sty['red']}[Error]{sty['reset']}'{arg}' already exists in '{cwd}'.")
         except PermissionError:
@@ -582,7 +588,7 @@ class SolusMain(cmd.Cmd):
         try:
             copy = "".join(args).split(maxsplit=2)
             shutil.copy2(copy[0], copy[1])
-            print(f"Successfully copied '{copy[0]}' to '{copy[1]}'.")
+            print(f"{sty['green']}Successfully copied '{copy[0]}' to '{copy[1]}'.{sty['reset']}")
             del copy
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['reset']} {e}")
@@ -594,29 +600,31 @@ class SolusMain(cmd.Cmd):
         "Prints information about <node> to the screen."
         sign = arg
         try:
-            meta = os.stat(sign[1])
-            print(f"{sty['green']}Metadata from '{sign[1]}'{sty['reset']}")
-            print(f"Path: {cwd}{dirSep}{sign[1]}")
-            print(f"Type: {'Directory' if os.path.isdir(sign[1]) else 'File' if os.path.isfile(sign[1]) else 'Other'}")
+            meta = os.stat(sign)
+            print(f"{sty['green']}Metadata from '{sign}'{sty['reset']}")
+            print(f"Path: {cwd}{dirSep}{sign}")
+            print(f"Type: {'Directory' if os.path.isdir(sign) else 'File' if os.path.isfile(sign) else 'Other'}")
             print(f"Last accessed: {time.ctime(meta.st_mtime)}")
-            print(f"Size: {meta.st_size if os.path.isfile(sign[1]) else getdirsize(sign[1]) if os.path.isdir(sign[1]) else 'Unknown'} bytes")
+            size = meta.st_size
+            fsm = sizetype(size)
+            print(f"Size: {size if os.path.isfile(sign) else getdirsize(sign) if os.path.isdir(sign) else 'Unknown'} {fsm}")
             print(f"Storage device: {meta.st_dev}")
             print(f"Owner ID: {meta.st_uid}")
             print(f"Permissions: {stat.filemode(meta.st_mode)}")
-            del meta, sign
+            del meta, sign, size
         except Exception as e:
             print(f"{sty['red']}[Error]{sty['reset']} {e}")
     def do_login(self, arg): # login
         "Modifies the login prompt to <bool>. Does not work at the moment."
-        log = arg
-        log[1] = log[1].casefold()
-        if log[1] == "true" or log[1] == "y":
+        arg = arg.casefold()
+        if arg == "true" or arg == "y":
             config['SOLUS_INFO']['login'] = "True"
             print(f"{sty['green']}Toggled login prompt on.{sty['reset']}")
-        elif log[1] == "false" or log[1] == "n":
+            config.write(open("config.txt", "w"))
+        elif arg == "false" or arg == "n":
             config['SOLUS_INFO']['login'] = "False"
             print(f"{sty['green']}Toggled login prompt off.{sty['reset']}")
-        del log
+            config.write(open("config.txt", "w"))
     def do_home(self, arg): # home
         "Sets CWD to Solus' directory."
         cwd = __file__.removesuffix(f"{dirSep}solus.py")
@@ -626,9 +634,9 @@ class SolusMain(cmd.Cmd):
         global ftpmain, load
         server = arg
         try:
-            print(f"Connecting to '{server}'...")
-            ftpUser = input("FTP:USERNAME> ")
-            ftpPass = input(f"FTP:PASSWORD> {sty['hide']}")
+            print(f"{sty['blue']}[FTP]{sty['reset']} Connecting to '{server}'...")
+            ftpUser = input(f"{sty['blue']}FTP{sty['reset']}:USERNAME> ")
+            ftpPass = input(f"{sty['blue']}FTP{sty['reset']}:PASSWORD> {sty['hide']}")
             print(sty['reset'], end="")
             task = mp.Process(target=load, args=("Connecting",))
             task.start()
@@ -636,14 +644,14 @@ class SolusMain(cmd.Cmd):
             ftplib.FTP.login(ftpmain)
             task.terminate()
             print(sty['mcu'], sty['dll'], end="", sep="")
-            print(f"{sty['green']}Logged in at '{server}'.{sty['reset']}")
-            print(f"Server message:\n{ftplib.FTP.getwelcome(ftpmain)}")
+            print(f"{sty['blue']}[FTP]{sty['reset']} Logged in at '{server}'.")
+            print(f"{sty['blue']}[FTP]{sty['reset']} Server message:\n{ftplib.FTP.getwelcome(ftpmain)}")
             ftpmode()
         except Exception as e:
             task.terminate()
             print(sty['mcu'], sty['dll'], end="", sep="")
             print(f"{sty['red']}[Error]{sty['reset']} {e}")
-    def do_cwdl(self, *args):
+    def do_cwdl(self, *args): # cwdl
         "Changes CWD to <dir> and prints <dir> to the screen. Acts as a combination of cwd and ls."
         global cwd
         try:
@@ -655,7 +663,6 @@ class SolusMain(cmd.Cmd):
                 cwd = os.getcwd()
                 print(f"{sty['green']}Changed directory to '{cwd}'{sty['reset']}")
                 print(f"{sty['green']}All in '{cwd}': {sty['reset']}")
-                print("Casey is very cool and does not suck at all, Oscar is the real smelly poo")
                 checkdir()
                 try:
                     if args[1] == ";h":
