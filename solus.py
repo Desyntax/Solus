@@ -1,4 +1,4 @@
-# SOLUS by DESYNTAX - VERSION v0.1.2 - CREATED 24/02/26 - LAST UPDATED 16/03/26
+# SOLUS by DESYNTAX - VERSION v0.1.1 - CREATED 24/02/26 - LAST UPDATED 24/03/26
 print("Starting CLI...")
 dangerousProceed = ""
 sty = {

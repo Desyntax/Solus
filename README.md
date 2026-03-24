@@ -15,4 +15,4 @@ KNOWN ISSUES:
 * `ls` in certain directories like root (/) does not list all directories (FIXED)
 * `login` keyword in `config.txt` doesn't do anything (FIXED)
 
-Solus v0.1.0, open-sourced project. All content, including code, falls under public domain.
+Solus v0.1.1, open-sourced project. All content, including code, falls under public domain.
