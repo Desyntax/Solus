@@ -1,6 +1,11 @@
 Solus {blue}FTP{reset} CLI, version ftp_2. Open-sourced project.
 Command format:
 command {green}<necessary_args>{reset} -- Description
+Necessary arguments:
+{green}<dir>{reset}     -- Any directory
+{green}<file>{reset}    -- Any filepath
+{green}<data>{reset}    -- Any file; this refers to its contents
+{green}<cmd>{reset}     -- Any FTP-standard command
 
 help                    -- Displays this help message
 exit                    -- Aborts the FTP connection and returns to Solus
@@ -8,8 +13,8 @@ cwd {green}<dir>{reset}               -- Changes working directory at the server
 ls                      -- Lists nodes at CWD in the server
 cwdl {green}<dir>{reset}              -- Changes working directory and lists nodes
 scan {green}<data>{reset}             -- Prints {green}<data>{reset} to the screen
-copy {green}<data> <file>{reset}      -- Reads binary data from {green}<data>{reset} at the server and writes it into {green}<file>{reset} locally
-cmd {green}<cmd>{reset}               -- Sends {green}<cmd>{reset} (FTP command) to the server and prints result
+copy {green}<data> <file>{reset}      -- Reads from {green}<data>{reset} and writes it into {green}<file>{reset} locally
+cmd {green}<cmd>{reset}               -- Sends {green}<cmd>{reset} to the server and prints result
 
 Run 'cmd help' to get a list of FTP commands.
 
