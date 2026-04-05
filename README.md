@@ -9,10 +9,9 @@ DO NOT run `boom`, `nano`, or `rep` on important system files or directories. So
 With FTP implemented, it is your responsibility to only connect to systems you are authorised to access.
 
 KNOWN ISSUES:
-* `nano` in OVERWRITE mode fails to overwrite the file contents, instead appends (FIXED)
+* Still incompatible with Windows
+* Directory symbol doesn't update (but in FTP it does)
 * `scan` with `;m` attribute does not properly stylise {rainbow} content
 * `sign` on very large nodes fails to calculate size
-* `ls` in certain directories like root (/) does not list all directories (FIXED)
-* `login` keyword in `config.txt` doesn't do anything (FIXED)
 
 Solus v0.1.1, open-sourced project. All content, including code, falls under public domain.
