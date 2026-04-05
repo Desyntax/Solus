@@ -2,9 +2,9 @@
 username = desyntax
 password = password
 solusname = Solus
-login = False
+login = True
 version = v0.2.0
-style = True
+style = ?
 
 [SYS_INFO]
 platform = linux
