@@ -1,4 +1,4 @@
-{bold}Solus command line interface{reset}, version 0.1.1 Alpha. Open-sourced project.
+{bold}Solus command line interface{reset}, version 0.2.0 Alpha. Open-sourced project.
 
 {underl}Interpreter format{reset}:
 {red}USERNAME{green}@{blue}Solusname{green}(directory){reset}>
