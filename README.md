@@ -14,4 +14,4 @@ KNOWN ISSUES:
 * `scan` with `;m` attribute does not properly stylise {rainbow} content
 * `sign` on very large nodes fails to calculate size
 
-Solus v0.1.1, open-sourced project. All content, including code, falls under public domain.
+Solus v0.2.0, open-sourced project. All content, including code, falls under public domain.
