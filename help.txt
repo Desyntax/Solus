@@ -46,5 +46,5 @@ license                 -- Prints license information about Solus
 {pink}debug{reset}                   -- Toggles debug mode
 
 All arguments and commands are {italic}case-sensitive{reset}.
-{pink}Pink{reset} commands are new in v0.1.1 Alpha.
+{pink}Pink{reset} commands are new in v0.2.0 Alpha.
 Use help {blue}[cmd]{reset} to view more details about a command. {dim}(not yet implemented){reset}
